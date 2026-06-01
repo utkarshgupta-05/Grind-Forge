@@ -1,0 +1,369 @@
+// tasks.js
+import { AppState } from "./state.js";
+import {
+    generateId,
+    validateRequired,
+    formatDate,
+    getDaysDiff,
+} from "./utils.js";
+
+let currentFilter = "all";
+let editingTaskId = null;
+
+export function createTask(taskData) {
+    if (!taskData || typeof taskData !== "object") {
+        throw new Error("Invalid task data");
+    }
+    if (!validateRequired(taskData.title)) {
+        throw new Error("Task title is required");
+    }
+    let priority = taskData.priority;
+    if (
+        !priority ||
+        (priority && !["low", "medium", "high"].includes(priority))
+    ) {
+        priority = "low";
+    }
+    let dueDate = null;
+    if (taskData.dueDate) {
+        const due = new Date(taskData.dueDate);
+        if (isNaN(due.getTime())) {
+            throw new Error("Invalid due date");
+        }
+        dueDate = due.toISOString();
+    }
+    const taskId = generateId();
+    const newTask = {
+        taskId: taskId,
+        taskTitle: taskData.title,
+        taskDescription: taskData.description || "",
+        dueDate: dueDate,
+        priority: priority,
+        createdAt: new Date().toISOString(),
+        isComplete: false,
+        completedAt: null,
+    };
+    AppState.tasks.push(newTask);
+
+    AppState.save();
+    return newTask;
+}
+
+export function deleteTask(taskId) {
+    if (!validateRequired(taskId)) {
+        throw new Error("Task ID is required for deletion");
+    }
+    const exists = AppState.tasks.some((task) => task.taskId === taskId);
+    if (!exists) {
+        throw new Error("Task not found");
+    }
+    AppState.tasks = AppState.tasks.filter((task) => task.taskId !== taskId);
+    AppState.save();
+    return true;
+}
+
+export function toggleTask(taskId) {
+    if (!validateRequired(taskId)) {
+        throw new Error("Task ID is required to toggle completion");
+    }
+    const task = AppState.tasks.find((t) => t.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    task.isComplete = !task.isComplete;
+    task.completedAt = task.isComplete ? new Date().toISOString() : null;
+    AppState.save();
+    return task;
+}
+
+export function getTaskFormData() {
+    const titleInput = document.getElementById("task-title");
+    const descriptionInput = document.getElementById("task-desc");
+    const dueDateInput = document.getElementById("task-due-date");
+    const priorityInput = document.getElementById("task-priority");
+
+    const title = titleInput.value.trim();
+    const description = descriptionInput.value.trim()
+        ? descriptionInput.value.trim()
+        : "";
+    const dueDate = dueDateInput.value ? dueDateInput.value : null;
+    const priority = priorityInput.value;
+
+    return {
+        title: title,
+        description: description,
+        dueDate: dueDate,
+        priority: priority,
+    };
+}
+
+export function handleTaskFormSubmit(event, container) {
+    event.preventDefault();
+    try {
+        const formData = getTaskFormData();
+        if (editingTaskId) {
+            updateTask(editingTaskId, formData);
+            editingTaskId = null;
+            const submitBtn = event.target.querySelector(
+                "button.primary-btn[type='submit']",
+            );
+            if (submitBtn) {
+                submitBtn.textContent = "Add Task";
+            }
+        } else {
+            createTask(formData);
+        }
+        renderTasks(container, currentFilter);
+        console.log(formData);
+        event.target.reset();
+    } catch (error) {
+        alert(`Error creating task: ${error.message}`);
+    }
+}
+
+export function renderTasks(container, filter = "all") {
+    if (!container || !(container instanceof HTMLElement)) {
+        throw new Error("Valid container element is required");
+    }
+
+    if (AppState.tasks.length === 0) {
+        container.innerHTML =
+            "<div class='empty-state'><h3>No Tasks Yet</h3><p>Create your first task.</p></div>";
+        return;
+    }
+
+    let tasksToRender = AppState.tasks;
+    if (filter === "completed") {
+        tasksToRender = AppState.tasks.filter((task) => task.isComplete);
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Completed Tasks</h3><p>Complete some tasks to see them here.</p></div>";
+            return;
+        }
+    } else if (filter === "overdue") {
+        tasksToRender = AppState.tasks.filter(
+            (task) =>
+                task.dueDate &&
+                getDaysDiff(task.dueDate, new Date()) < 0 &&
+                !task.isComplete,
+        );
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Overdue Tasks</h3><p>All tasks are either completed or not yet due.</p></div>";
+            return;
+        }
+    } else if (filter === "pending") {
+        tasksToRender = AppState.tasks.filter(
+            (task) =>
+                !task.isComplete &&
+                (!task.dueDate || getDaysDiff(task.dueDate, new Date()) >= 0),
+        );
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Pending Tasks</h3><p>All tasks are either completed or overdue.</p></div>";
+            return;
+        }
+    }
+    const tasksHTML = tasksToRender
+        .map(
+            (task) => `
+        <article class="task-card" data-task-id="${task.taskId}">
+                  <div class="task-card-header">
+                    <div class="task-checkbox">
+                      <input type="checkbox" id="task-${task.taskId}-status" name="task-${task.taskId}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
+                      <label for="task-${task.taskId}-status">Mark as Complete</label>
+                    </div>
+                    <h3 class="task-title">${task.taskTitle}</h3>
+                  </div>
+                  <div class="task-card-body">
+                    <p class="task-description">${task.taskDescription}</p>
+                  </div>
+                  <div class="task-card-footer">
+                    <div class="task-meta">
+                      <span class="task-due-date"><strong>Due:</strong> ${task.dueDate ? formatDate(task.dueDate) : "No due date"}</span>
+                      <span class="task-priority-badge ${task.priority.toLowerCase()}"><strong>Priority:</strong> ${task.priority}</span>
+                    </div>
+                    <div class="task-actions">
+                      <button type="button" class="edit-btn" data-action="edit">Edit</button>
+                      <button type="button" class="delete-btn" data-action="delete">Delete</button>
+                    </div>
+                  </div>
+                </article>
+    `,
+        )
+        .join("");
+    container.innerHTML = tasksHTML;
+    renderTaskStats();
+}
+
+export function initTasksPage() {
+    const form = document.getElementById("task-form");
+    const container = document.getElementById("task-list-container");
+    const tabsContainer = document.querySelector(".task-tabs");
+    tabsContainer.addEventListener("click", (event) => {
+        handleTaskFilterClick(event, container);
+    });
+
+    if (!form || !container) return;
+
+    form.addEventListener("submit", (event) => {
+        handleTaskFormSubmit(event, container);
+    });
+
+    container.addEventListener("click", (event) => {
+        handleTaskListClick(event, container);
+    });
+
+    renderTasks(container, currentFilter);
+}
+
+function handleTaskListClick(event, container) {
+    const action = event.target.dataset.action;
+
+    const taskCard = event.target.closest("[data-task-id]");
+    if (!taskCard) return;
+
+    const taskId = taskCard.dataset.taskId;
+
+    try {
+        if (action === "edit") {
+            startEditingTask(taskId);
+        }
+
+        if (action === "delete") {
+            deleteTask(taskId);
+            renderTasks(container, currentFilter);
+        }
+
+        if (action === "toggle") {
+            toggleTask(taskId);
+            renderTasks(container, currentFilter);
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function handleTaskFilterClick(event, container) {
+    const filter = event.target.dataset.filter;
+    if (!filter) return;
+    currentFilter = filter;
+    renderTasks(container, currentFilter);
+}
+
+export function startEditingTask(taskId) {
+    const task = AppState.tasks.find((task) => task.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    editingTaskId = taskId;
+    document.getElementById("task-title").value = task.taskTitle;
+    document.getElementById("task-desc").value = task.taskDescription
+        ? task.taskDescription
+        : "";
+    document.getElementById("task-due-date").value = task.dueDate
+        ? task.dueDate.split("T")[0]
+        : "";
+    document.getElementById("task-priority").value = task.priority;
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Update Task";
+    }
+}
+
+export function updateTask(taskId, taskData) {
+    const task = AppState.tasks.find((task) => task.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+
+    if (!taskData || typeof taskData !== "object") {
+        throw new Error("Invalid task data");
+    }
+    if (!validateRequired(taskData.title)) {
+        throw new Error("Task title is required");
+    }
+    let priority = taskData.priority;
+    if (
+        !priority ||
+        (priority && !["low", "medium", "high"].includes(priority))
+    ) {
+        priority = "low";
+    }
+    let dueDate = null;
+    if (taskData.dueDate) {
+        const due = new Date(taskData.dueDate);
+        if (isNaN(due.getTime())) {
+            throw new Error("Invalid due date");
+        }
+        dueDate = due.toISOString();
+    }
+    const updatedTask = {
+        taskTitle: taskData.title,
+        taskDescription: taskData.description || "",
+        dueDate: dueDate,
+        priority: priority,
+    };
+    Object.assign(task, updatedTask);
+    AppState.save();
+    return task;
+}
+
+export function getTaskStats() {
+    const tasks = AppState.tasks;
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((task) => task.isComplete).length;
+    const overdueTasks = tasks.filter(
+        (task) =>
+            task.dueDate &&
+            getDaysDiff(task.dueDate, new Date()) < 0 &&
+            !task.isComplete,
+    ).length;
+    const pendingTasks = totalTasks - completedTasks - overdueTasks;
+    const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(2) : 0;
+    const completedToday = tasks.filter((task) => {
+        if (!task.isComplete || !task.completedAt) {
+            return false;
+        }
+        return (new Date(task.completedAt).toDateString() === new Date().toDateString());
+    }).length;
+
+
+    return {
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        overdueTasks,
+        completionRate,
+        completedToday,
+    };
+}
+
+export function renderTaskStats() {
+    const stats = getTaskStats();
+    const totalTasksEl = document.getElementById("total-tasks-count");
+
+    const pendingTasksEl = document.getElementById("pending-tasks-count");
+
+    const overdueTasksEl = document.getElementById("overdue-tasks-count");
+
+    const completedTasksEl = document.getElementById("completed-tasks-count");
+
+    const completionRateEl = document.getElementById("completion-rate");
+
+    const progressFillEl = document.getElementById("completion-progress");
+
+    if (!totalTasksEl || !pendingTasksEl || !overdueTasksEl || !completedTasksEl || !completionRateEl || !progressFillEl) {
+        return;
+    }
+    totalTasksEl.textContent = stats.totalTasks;
+
+    pendingTasksEl.textContent = stats.pendingTasks;
+
+    overdueTasksEl.textContent = stats.overdueTasks;
+
+    completedTasksEl.textContent = stats.completedTasks;
+
+    completionRateEl.textContent = `${stats.completionRate}%`;
+    progressFillEl.style.width = `${stats.completionRate}%`;
+}

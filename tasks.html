@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tasks - Productivity Dashboard</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <nav aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="index.html" data-page="index.html">Home</a></li>
+                    <li>
+                        <a href="dashboard.html" data-page="dashboard.html">Dashboard</a>
+                    </li>
+                    <li><a href="tasks.html" data-page="tasks.html">Tasks</a></li>
+                    <li><a href="notes.html" data-page="notes.html">Notes</a></li>
+                    <li><a href="focus.html" data-page="focus.html">Focus</a></li>
+                    <li>
+                        <a href="expenses.html" data-page="expenses.html">Expenses</a>
+                    </li>
+                    <li>
+                        <a href="settings.html" data-page="settings.html">Settings</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content" role="main">
+            <header class="app-header">
+                <div class="logo">
+                    <div class="logo-icon">Logo</div>
+                    <div class="logo-text">My Productivity App</div>
+                </div>
+                <div class="welcome-msg">
+                    <span class="welcome-text">Welcome, User!</span>
+                    <div class="time-and-date">
+                        <span id="current-time">00:00:00</span>
+                        <span id="current-date">01/01/2023</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="dashboard-link">
+                        <a href="dashboard.html">Dashboard</a>
+                    </div>
+                    <div class="notification">
+                        <span class="notification-icon">notification</span>
+                        <span class="notification-count">3</span>
+                    </div>
+                    <div class="profile-avatar">Avatar</div>
+                </div>
+            </header>
+
+            <div class="page-content">
+
+                <section id="task-stats" class="quick-stats">
+                    <div class="stat-card">
+                        <h4>Total Tasks :</h4>
+                        <p id="total-tasks-count" class="stat-value">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>Pending Tasks :</h4>
+                        <p id="pending-tasks-count" class="stat-value">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4 class="text-danger">Overdue :</h4>
+                        <p id="overdue-tasks-count" class="stat-value text-danger">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4 class="text-success">Completed :</h4>
+                        <p id="completed-tasks-count" class="stat-value text-success">0</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h4>Completion Rate :</h4>
+                        <div class="progress-stats">
+                            <p id="completion-rate" class="stat-value">0%</p>
+                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                aria-valuemax="100">
+                                <div id="completion-progress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="add-task-section" class="task-form-section">
+                    <h2>Create a New Task</h2>
+                    <div class="form-card">
+                        <form id="task-form">
+                            <div class="form-group">
+                                <label for="task-title">Title</label>
+                                <input type="text" id="task-title" name="task-title" placeholder="Enter task title"
+                                    required />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="task-desc">Description</label>
+                                <textarea id="task-desc" name="task-desc" rows="3"
+                                    placeholder="Enter task description"></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="task-due-date">Due Date</label>
+                                    <input type="date" id="task-due-date" name="task-due-date" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="task-priority">Priority</label>
+                                    <select id="task-priority" name="task-priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="primary-btn">Add Task</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="task-list-section" class="task-list-section">
+                    <h2>Your Tasks</h2>
+                    <nav class="task-tabs" aria-label="Task categories">
+                        <button class="tab-btn active" type="button" data-filter="all">
+                            All tasks
+                        </button>
+                        <button class="tab-btn" type="button" data-filter="pending">
+                            Pending Tasks
+                        </button>
+                        <button class="tab-btn" type="button" data-filter="overdue">
+                            Overdue Tasks
+                        </button>
+                        <button class="tab-btn" type="button" data-filter="completed">
+                            Completed Tasks
+                        </button>
+                    </nav>
+
+                    <hr class="tab-divider" />
+
+                    <div id="pending-tasks" class="task-tab-pane active-pane">
+                        <div id="task-list-container">
+                            <!-- Task cards will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div id="overdue-tasks" class="task-tab-pane">
+                        <div class="task-list-container">
+                            <!-- Task cards will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div id="completed-tasks" class="task-tab-pane">
+                        <div class="task-list-container">
+                           
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
