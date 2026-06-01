@@ -52,3 +52,9 @@ a{
     background-color: var(--success);
     border-radius: inherit;
 }
+
+.task-tabs > .tab-btn.active {
+    font-weight: 600;
+    background-color: var(--accent);
+    color: white;
+}

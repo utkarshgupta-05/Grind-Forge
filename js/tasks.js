@@ -40,6 +40,7 @@ export function createTask(taskData) {
         dueDate: dueDate,
         priority: priority,
         createdAt: new Date().toISOString(),
+        updatedAt: null,
         isComplete: false,
         completedAt: null,
     };
@@ -104,11 +105,13 @@ export function handleTaskFormSubmit(event, container) {
         if (editingTaskId) {
             updateTask(editingTaskId, formData);
             editingTaskId = null;
-            const submitBtn = event.target.querySelector(
-                "button.primary-btn[type='submit']",
-            );
+            const submitBtn = event.target.querySelector("button.primary-btn[type='submit']");
+            const cancelBtn = document.getElementById("cancel-edit-btn");
             if (submitBtn) {
                 submitBtn.textContent = "Add Task";
+            }
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
             }
         } else {
             createTask(formData);
@@ -129,6 +132,7 @@ export function renderTasks(container, filter = "all") {
     if (AppState.tasks.length === 0) {
         container.innerHTML =
             "<div class='empty-state'><h3>No Tasks Yet</h3><p>Create your first task.</p></div>";
+        renderTaskStats();
         return;
     }
 
@@ -138,6 +142,7 @@ export function renderTasks(container, filter = "all") {
         if (tasksToRender.length === 0) {
             container.innerHTML =
                 "<div class='empty-state'><h3>No Completed Tasks</h3><p>Complete some tasks to see them here.</p></div>";
+            renderTaskStats();
             return;
         }
     } else if (filter === "overdue") {
@@ -150,6 +155,7 @@ export function renderTasks(container, filter = "all") {
         if (tasksToRender.length === 0) {
             container.innerHTML =
                 "<div class='empty-state'><h3>No Overdue Tasks</h3><p>All tasks are either completed or not yet due.</p></div>";
+            renderTaskStats();
             return;
         }
     } else if (filter === "pending") {
@@ -161,6 +167,7 @@ export function renderTasks(container, filter = "all") {
         if (tasksToRender.length === 0) {
             container.innerHTML =
                 "<div class='empty-state'><h3>No Pending Tasks</h3><p>All tasks are either completed or overdue.</p></div>";
+            renderTaskStats();
             return;
         }
     }
@@ -200,21 +207,29 @@ export function initTasksPage() {
     const form = document.getElementById("task-form");
     const container = document.getElementById("task-list-container");
     const tabsContainer = document.querySelector(".task-tabs");
-    tabsContainer.addEventListener("click", (event) => {
-        handleTaskFilterClick(event, container);
-    });
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", () => {
+            cancelEditingTask();
+        });
+    }
+    if (tabsContainer) {
+        tabsContainer.addEventListener("click", (event) => {
+            handleTaskFilterClick(event, container);
+        });
 
-    if (!form || !container) return;
+        if (!form || !container) return;
 
-    form.addEventListener("submit", (event) => {
-        handleTaskFormSubmit(event, container);
-    });
+        form.addEventListener("submit", (event) => {
+            handleTaskFormSubmit(event, container);
+        });
 
-    container.addEventListener("click", (event) => {
-        handleTaskListClick(event, container);
-    });
+        container.addEventListener("click", (event) => {
+            handleTaskListClick(event, container);
+        });
 
-    renderTasks(container, currentFilter);
+        renderTasks(container, currentFilter);
+    }
 }
 
 function handleTaskListClick(event, container) {
@@ -247,6 +262,13 @@ function handleTaskListClick(event, container) {
 function handleTaskFilterClick(event, container) {
     const filter = event.target.dataset.filter;
     if (!filter) return;
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn) => {
+        btn.classList.remove("active");
+    });
+    const clickedButton = event.target.closest(".tab-btn");
+    if (!clickedButton) return;
+    clickedButton.classList.add("active");
     currentFilter = filter;
     renderTasks(container, currentFilter);
 }
@@ -258,13 +280,13 @@ export function startEditingTask(taskId) {
     }
     editingTaskId = taskId;
     document.getElementById("task-title").value = task.taskTitle;
-    document.getElementById("task-desc").value = task.taskDescription
-        ? task.taskDescription
-        : "";
-    document.getElementById("task-due-date").value = task.dueDate
-        ? task.dueDate.split("T")[0]
-        : "";
+    document.getElementById("task-desc").value = task.taskDescription ? task.taskDescription : "";
+    document.getElementById("task-due-date").value = task.dueDate ? task.dueDate.split("T")[0] : "";
     document.getElementById("task-priority").value = task.priority;
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = false;
+    }
     const submitBtn = document.querySelector("button.primary-btn[type='submit']");
     if (submitBtn) {
         submitBtn.textContent = "Update Task";
@@ -303,11 +325,31 @@ export function updateTask(taskId, taskData) {
         taskDescription: taskData.description || "",
         dueDate: dueDate,
         priority: priority,
+        updatedAt: new Date().toISOString(),
     };
     Object.assign(task, updatedTask);
     AppState.save();
     return task;
 }
+
+
+
+
+export function cancelEditingTask() {
+    editingTaskId = null;
+    document.getElementById("task-form").reset();
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Add Task";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = true;
+    }
+}
+
+
+
 
 export function getTaskStats() {
     const tasks = AppState.tasks;
@@ -367,3 +409,4 @@ export function renderTaskStats() {
     completionRateEl.textContent = `${stats.completionRate}%`;
     progressFillEl.style.width = `${stats.completionRate}%`;
 }
+
