@@ -4,6 +4,7 @@ import { getCurrentPage } from "./router.js";
 import { initTasksPage } from "./tasks.js";
 import { initHomePage } from "./home.js";
 import { initDashboardPage } from "./dashboard.js";
+import { initFocusPage } from "./focus.js";
 
 
 AppState.load();
@@ -20,4 +21,7 @@ if (currentPage === "tasks.html") {
 }
 if (currentPage === "dashboard.html") {
     initDashboardPage();
+}
+if (currentPage === "focus.html") {
+    initFocusPage();
 }
