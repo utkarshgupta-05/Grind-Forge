@@ -51,9 +51,54 @@
         </div>
       </header>
 
+
       <div class="page-content">
-        
-        </div>
+
+        <section id="notes-stats" class="quick-stats">
+          <div class="stat-card">
+            <h4>Total Notes :</h4>
+            <p id="total-notes-count" class="stat-value">0</p>
+          </div>
+
+          <div class="stat-card">
+            <h4>Notes created today :</h4>
+            <p id="notes-created-today-count" class="stat-value">0</p>
+          </div>
+
+          <div class="stat-card">
+            <h4>Notes Updated This Week :</h4>
+            <p id="notes-updated-this-week-count" class="stat-value">0</p>
+          </div>
+        </section>
+
+
+        <section class="notes-form-section">
+
+          <h2>Create Note</h2>
+
+          <form id="note-form">
+
+            <input id="note-title" type="text" placeholder="Note title" required />
+
+            <textarea id="note-content" placeholder="Write your note..." required></textarea>
+            <div class="form-actions">
+              <button type="submit" class="primary-btn">Save Note</button>
+              <button type="button" id="cancel-edit-btn" class="secondary-btn" hidden="true">Cancel Edit</button>
+            </div>
+
+          </form>
+
+        </section>
+
+        <section class="notes-list-section">
+
+          <h2>Your Notes</h2>
+
+          <div id="notes-list-container"></div>
+
+        </section>
+
+      </div>
 
     </main>
   </div>

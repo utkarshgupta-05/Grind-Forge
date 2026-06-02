@@ -117,7 +117,6 @@ export function handleTaskFormSubmit(event, container) {
             createTask(formData);
         }
         renderTasks(container, currentFilter);
-        console.log(formData);
         event.target.reset();
     } catch (error) {
         alert(`Error creating task: ${error.message}`);
@@ -234,6 +233,9 @@ export function initTasksPage() {
 
 function handleTaskListClick(event, container) {
     const action = event.target.dataset.action;
+    if (!action) {
+        return;
+    }
 
     const taskCard = event.target.closest("[data-task-id]");
     if (!taskCard) return;
