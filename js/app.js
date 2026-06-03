@@ -6,6 +6,8 @@ import { initHomePage } from "./home.js";
 import { initDashboardPage } from "./dashboard.js";
 import { initFocusPage } from "./focus.js";
 import { initNotesPage } from "./notes.js";
+import { initExpensesPage } from "./expenses.js";
+
 
 AppState.load();
 
@@ -27,4 +29,7 @@ if (currentPage === "focus.html") {
 }
 if (currentPage === "notes.html") {
     initNotesPage();
+}
+if (currentPage === "expenses.html") {
+    initExpensesPage();
 }
