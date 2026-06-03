@@ -1,1 +1,236 @@
 /* responsive.css — breakpoints for mobile/tablet */
+
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 200px;
+        padding: 16px;
+    }
+
+    .app-header {
+        padding: 0 16px;
+    }
+
+    .page-content {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    #dashboard-insights-list {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        flex-direction: row;
+        padding: 12px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+    }
+
+    .nav-links {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .nav-links li a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .app-header {
+        flex-wrap: wrap;
+        height: auto;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .logo-text,
+    .welcome-msg .time-and-date {
+        display: none;
+    }
+
+    .page-content {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .dashboard-tabs {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-tabs .tab-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .stat-card {
+        min-height: 100px;
+    }
+
+    .stat-card h3 {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .stat-card p {
+        font-size: 1.5rem;
+    }
+
+    #dashboard-insights-list {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        padding: 12px;
+        gap: 0;
+    }
+
+    .insight-item {
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    .insight-item h3 {
+        font-size: 0.8rem;
+    }
+
+    .insight-item p {
+        font-size: 0.95rem;
+    }
+
+    .activity-item-header {
+        font-size: 0.9rem;
+    }
+
+    .activity-module {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+
+    .activity-title {
+        font-size: 0.85rem;
+    }
+
+    .activity-date {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        padding: 8px;
+    }
+
+    .nav-links li a {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    .app-header {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .logo-icon {
+        font-size: 0.9rem;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .page-content {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .dashboard-tabs {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .dashboard-tabs .tab-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.75rem;
+    }
+
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        min-height: 90px;
+        padding: 16px;
+    }
+
+    .stat-card h3 {
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+    }
+
+    .stat-card p {
+        font-size: 1.25rem;
+    }
+
+    #dashboard-insights-list {
+        grid-template-columns: 1fr;
+        padding: 8px;
+    }
+
+    .insight-item {
+        padding: 10px;
+    }
+
+    .insight-item h3 {
+        font-size: 0.75rem;
+    }
+
+    .insight-item p {
+        font-size: 0.9rem;
+    }
+
+    .activity-item {
+        padding: 12px;
+    }
+
+    .activity-item-header {
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    .activity-module {
+        font-size: 0.65rem;
+        padding: 1px 5px;
+    }
+
+    .activity-title {
+        font-size: 0.8rem;
+    }
+
+    .activity-date {
+        font-size: 0.7rem;
+    }
+
+    .no-activity,
+    .no-insights {
+        padding: 20px 12px;
+        font-size: 0.85rem;
+    }
+}
