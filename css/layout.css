@@ -49,11 +49,33 @@ body {
     padding: 0 24px;
 }
 
+.welcome-msg{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.time-and-date{
+    display: flex;
+    flex-direction: column;
+}
+
 .header-actions {
     display: flex;
     gap: 16px;
     align-items: center;
 }
+
+.dashboard-link,
+.notification {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+}
+
+
 
 .page-content {
     flex: 1;
@@ -133,6 +155,15 @@ body {
 .weather-card,
 .quote-card {
     min-height: 150px;
+}
+
+.quote-text,
+.quote-author {
+    width: 100%;
+}
+
+.quote-author {
+    text-align: right;
 }
 
 .urgent-tasks{

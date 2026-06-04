@@ -1,7 +1,7 @@
 import { AppState } from "./state.js";
 import { validateRequired, formatCurrency, formatDate } from "./utils.js";
 
-let currentFilter = 'all';  
+let currentFilter = 'all';
 let editingExpenseId = null;
 
 export function initExpensesPage() {
@@ -241,7 +241,8 @@ export function renderExpenseList(container, filter = "all") {
         </article>
     `).join('');
     container.innerHTML = expensesHTML;
-
+    const breakdownContainer = document.getElementById("category-breakdown-container");
+    if (breakdownContainer) renderCategoryBreakdown(breakdownContainer);
     renderExpenseStats();
 }
 
@@ -274,14 +275,14 @@ export function renderCategoryBreakdown(container) {
     }
     const expenses = AppState.expenses;
     const currentDate = new Date();
-    
+
     // Filter expenses for this month
     const thisMonthExpenses = expenses.filter((expense) => {
         if (!expense.expenseDate) return false;
         const [year, month, day] = expense.expenseDate.split("-").map(Number);
         const expenseDate = new Date(year, month - 1, day);
-        return expenseDate.getMonth() === currentDate.getMonth() && 
-               expenseDate.getFullYear() === currentDate.getFullYear();
+        return expenseDate.getMonth() === currentDate.getMonth() &&
+            expenseDate.getFullYear() === currentDate.getFullYear();
     });
 
     if (thisMonthExpenses.length === 0) {

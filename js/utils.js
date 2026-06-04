@@ -84,3 +84,40 @@ export function debounce(fn,delay) {
         }, delay);
     };
 }
+
+export function startLiveTimer() {
+    const updateTimer = () => {
+        const now = new Date();
+        
+        // Format time as HH:MM:SS
+        const timeString = now.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // Format date as DD/MM/YYYY
+        const dateString = now.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        const currentTimeEl = document.getElementById('current-time');
+        const currentDateEl = document.getElementById('current-date');
+        
+        if (currentTimeEl) {
+            currentTimeEl.textContent = timeString;
+        }
+        if (currentDateEl) {
+            currentDateEl.textContent = dateString;
+        }
+    };
+    
+    // Update immediately
+    updateTimer();
+    
+    // Update every second
+    setInterval(updateTimer, 1000);
+}

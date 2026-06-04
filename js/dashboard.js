@@ -207,7 +207,9 @@ export function getFocusDashboardStats() {
     }).length;
     const completedThisWeek = completedSessions.filter((session) => new Date(session.completedAt) >= oneWeekAgo).length;
     const totalFocusTime = sessions.reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
-    const focusTimeThisWeek = completedSessions.reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
+    const focusTimeThisWeek = completedSessions
+        .filter(session => new Date(session.completedAt) >= oneWeekAgo)
+        .reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
     const averageDuration = totalSessions > 0 ? totalFocusTime / totalSessions : 0;
     const latestSession = completedSessions.slice().sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] || null;
 

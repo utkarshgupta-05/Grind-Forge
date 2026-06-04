@@ -8,6 +8,7 @@ import { initDashboardPage } from "./dashboard.js";
 import { initFocusPage } from "./focus.js";
 import { initNotesPage } from "./notes.js";
 import { initExpensesPage } from "./expenses.js";
+import { startLiveTimer } from "./utils.js";
 
 
 AppState.load();
@@ -15,6 +16,7 @@ AppState.load();
 initTheme();
 bindThemeToggle();
 highlightActiveLink();
+startLiveTimer();
 
 const currentPage = getCurrentPage();
 document.body.dataset.page = currentPage;
