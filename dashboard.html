@@ -5,8 +5,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Productivity Dashboard</title>
+  <script src="js/theme-init.js"></script>
   <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/responsive.css" />
 </head>
 
@@ -41,6 +44,10 @@
           </div>
         </div>
         <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="false">
+            <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
+            <span class="theme-toggle-label">Light</span>
+          </button>
           <div class="dashboard-link">
             <a href="dashboard.html">Dashboard</a>
           </div>

@@ -1,2 +1,40 @@
-/* themes.css — theme overrides (dark/light) */
-/* add :root.dark or [data-theme="dark"] variables here */
+/* themes.css — light mode overrides (dark defaults in base.css) */
+
+:root.light-theme {
+  --sidebar-bg: #ffffff;
+  --main-bg: #f3f4f6;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+
+  --btn-bg: #059669;
+  --btn-text: #ffffff;
+
+  --notes-accent: #db2777;
+  --focus-accent: #2563eb;
+  --completed-accent: #059669;
+  --xp-accent: #d97706;
+  --expense-accent: #dc2626;
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+
+  --hover-bg: #f9fafb;
+  --nav-active-bg: #ecfdf5;
+  --completed-bg: rgba(5, 150, 105, 0.1);
+  --notes-bg: rgba(219, 39, 119, 0.1);
+  --focus-bg: rgba(37, 99, 235, 0.1);
+  --expense-bg: rgba(220, 38, 38, 0.1);
+  --focus-border: rgba(37, 99, 235, 0.3);
+  --draft-bg: rgba(219, 39, 119, 0.1);
+
+  --danger: #dc2626;
+  --danger-bg: rgba(220, 38, 38, 0.1);
+  --warning: #d97706;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root.light-theme,
+:root.light-theme body {
+  color-scheme: light;
+}

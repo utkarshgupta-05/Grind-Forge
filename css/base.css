@@ -1,212 +1,247 @@
 /* base.css — reset, variables, typography */
 
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 :root {
-    --bg: #f5f7fb;
-    --surface: #ffffff;
-    --accent: #4f46e5;
-    --success: #16a34a;
+  --sidebar-bg: #171e1a;
+  --main-bg: #101513;
+  --card-bg: #1c2420;
+  --card-border: #2f3a33;
 
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
+  --btn-bg: #4e9664;
+  --btn-text: #ffffff;
 
-    --border: #e5e7eb;
+  --notes-accent: #d16ac4;
+  --focus-accent: #9fb3d0;
+  --completed-accent: #4f9a50;
+  --xp-accent: #3f730f;
+  --expense-accent: #e28c5c; /* Earthy copper for expenses */
+
+  /* General Text Colors for Dark Theme */
+  --text-primary: #f3f7f4;
+  --text-secondary: #b9c4be;
+  --text-muted: #87928b;
+
+  /* Background Opacities */
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --nav-active-bg: rgba(78, 150, 100, 0.1);
+  --completed-bg: rgba(79, 154, 80, 0.15);
+  --notes-bg: rgba(209, 106, 196, 0.15);
+  --focus-bg: rgba(159, 179, 208, 0.15);
+  --expense-bg: rgba(226, 140, 92, 0.15);
+  --focus-border: rgba(159, 179, 208, 0.2);
+  --draft-bg: rgba(209, 106, 196, 0.1);
+
+  /* Semantic aliases for layout & shared rules */
+  --bg: var(--main-bg);
+  --surface: var(--card-bg);
+  --border: var(--card-border);
+  --accent: var(--btn-bg);
+  --success: var(--completed-accent);
+  --danger: #c96b6b;
+  --danger-bg: rgba(201, 107, 107, 0.15);
+  --warning: #d4a84a;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+html {
+  color-scheme: dark light;
+}
+
+html[data-theme="dark"],
+html:not(.light-theme) {
+  color-scheme: dark;
 }
 
 body {
-    color: var(--text-primary);
+  color: var(--text-primary);
+  background-color: var(--main-bg);
 }
 
-
-a{
-    color: inherit;
-    text-decoration: none;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.nav-links a.active {
-    background-color: var(--accent);
-    color: white;
-}
+/* Nav active styles in components.css */
 
 .dashboard-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 24px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 12px;
 }
 
 .dashboard-tabs .tab-btn {
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    position: relative;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .dashboard-tabs .tab-btn:hover {
-    color: var(--text-primary);
-    background-color: rgba(79, 70, 229, 0.05);
+  color: var(--text-primary);
+  background-color: var(--hover-bg);
 }
 
 .dashboard-tabs .tab-btn:focus {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .dashboard-tabs .tab-btn.active {
-    color: var(--accent);
-    font-weight: 600;
-    border-bottom: 3px solid var(--accent);
-    padding-bottom: 9px;
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 9px;
 }
 
 .quick-action-btn {
-    background-color: var(--accent);
-    color: white;
+  background-color: var(--accent);
+  color: white;
 }
 
-
 .stat-card p {
-    color: var(--accent);
+  color: var(--accent);
 }
 
 .progress-bar {
-    background-color: var(--border);
-    border-radius: 999px;
+  background-color: var(--border);
+  border-radius: 999px;
 }
 
 .progress-fill {
-    background-color: var(--success);
-    border-radius: inherit;
+  background-color: var(--success);
+  border-radius: inherit;
 }
 
 .task-tabs > .tab-btn.active {
-    font-weight: 600;
-    background-color: var(--accent);
-    color: white;
+  font-weight: 600;
+  background-color: var(--accent);
+  color: white;
 }
 
 .dashboard-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .stat-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 110px;
 }
 
 .stat-card h3 {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-card p {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--accent);
-    margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
 }
 
 .no-activity,
 .no-insights {
-    padding: 32px 20px;
-    text-align: center;
-    color: var(--text-secondary);
-    font-style: italic;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .activity-item {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: background-color 0.15s ease;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background-color 0.15s ease;
 }
 
 .activity-item:hover {
-    background-color: rgba(79, 70, 229, 0.02);
+  background-color: var(--hover-bg);
 }
 
 .activity-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .activity-item-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
 }
 
 .activity-item-header strong {
-    color: var(--text-primary);
-    font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .activity-module {
-    display: inline-block;
-    padding: 2px 8px;
-    background-color: var(--accent);
-    color: white;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--accent);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .activity-title {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    font-weight: 500;
-    margin: 0;
-    word-break: break-word;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin: 0;
+  word-break: break-word;
 }
 
 .activity-date {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .insight-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .insight-item h3 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .insight-item p {
-    font-size: 1.1rem;
-    color: var(--accent);
-    font-weight: 700;
-    margin: 0;
-    word-break: break-word;
+  font-size: 1.1rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0;
+  word-break: break-word;
 }

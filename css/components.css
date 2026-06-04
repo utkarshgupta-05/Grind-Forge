@@ -1,1 +1,579 @@
 /* components.css — cards, buttons, inputs, badges */
+
+/* Navigation */
+.nav-links a {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-links a:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.nav-links a.active {
+  background-color: var(--nav-active-bg);
+  color: var(--btn-bg);
+  font-weight: 600;
+}
+
+/* Theme toggle */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background-color: var(--main-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--accent);
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Header */
+.logo-text,
+.welcome-text {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.time-and-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.dashboard-link a {
+  color: var(--btn-bg);
+  font-weight: 500;
+}
+
+.dashboard-link a:hover {
+  color: var(--text-primary);
+}
+
+.profile-avatar {
+  background-color: var(--card-border);
+  color: var(--text-primary);
+  border-radius: 50%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.notification-count {
+  color: var(--btn-bg);
+  font-weight: 600;
+}
+
+/* Section headings */
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.urgent-task-title,
+.quick-actions-title {
+  color: var(--text-primary);
+}
+
+.page-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Stat cards */
+.stat-card h3,
+.stat-card h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.stat-card .stat-value,
+.stat-card p.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.text-danger,
+.text-danger.stat-value,
+.stat-card .text-danger,
+.stat-card p.text-danger {
+  color: var(--danger);
+}
+
+.text-success,
+.text-success.stat-value,
+.stat-card .text-success,
+.stat-card p.text-success {
+  color: var(--success);
+}
+
+/* Page-specific stat accents */
+body[data-page="notes.html"] .stat-card .stat-value {
+  color: var(--notes-accent);
+}
+
+body[data-page="focus.html"] .stat-card .stat-value {
+  color: var(--focus-accent);
+}
+
+body[data-page="expenses.html"] .stat-card .stat-value {
+  color: var(--expense-accent);
+}
+
+/* Forms */
+.form-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+#note-form input,
+#note-form textarea,
+#session-name,
+.expense-filter-row select {
+  background-color: var(--main-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+#note-form input,
+#note-form textarea {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+#note-form input::placeholder,
+#note-form textarea::placeholder,
+#session-name::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+#note-form input:focus,
+#note-form textarea:focus,
+#session-name:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.primary-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.primary-btn:hover {
+  filter: brightness(1.1);
+}
+
+.secondary-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+/* Task tabs */
+.task-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.task-tabs .tab-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.task-tabs .tab-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.tab-divider {
+  border: none;
+  border-top: 1px solid var(--card-border);
+  margin-bottom: 20px;
+}
+
+/* Task cards */
+.task-card,
+.expense-card,
+.note-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.task-title,
+.expense-title,
+.note-item h3 {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.task-description,
+.expense-category,
+.expense-date,
+.note-date {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.expense-amount {
+  color: var(--expense-accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.task-priority-badge.low {
+  color: var(--text-muted);
+}
+
+.task-priority-badge.medium {
+  color: var(--warning);
+}
+
+.task-priority-badge.high {
+  color: var(--danger);
+}
+
+.task-actions,
+.expense-actions,
+.note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edit-btn,
+.delete-btn,
+.edit-note-btn,
+.delete-note-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.edit-btn:hover,
+.edit-note-btn:hover {
+  background-color: var(--nav-active-bg);
+  color: var(--btn-bg);
+  border-color: var(--btn-bg);
+}
+
+.delete-btn:hover,
+.delete-note-btn:hover {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Activity module badges */
+.activity-module {
+  background-color: var(--btn-bg);
+}
+
+.activity-module--tasks {
+  background-color: var(--btn-bg);
+}
+
+.activity-module--notes {
+  background-color: var(--notes-accent);
+}
+
+.activity-module--focus {
+  background-color: var(--focus-accent);
+  color: var(--btn-text);
+}
+
+.activity-module--expenses {
+  background-color: var(--expense-accent);
+  color: var(--btn-text);
+}
+
+/* Category breakdown */
+.category-breakdown-item {
+  margin-bottom: 16px;
+}
+
+.category-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.category-breakdown-section .progress-fill {
+  background-color: var(--expense-accent);
+}
+
+/* Focus page */
+.focus-timer-section {
+  text-align: center;
+  padding: 32px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+#focus-timer-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--focus-accent);
+  margin: 24px 0;
+}
+
+.focus-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.focus-controls button {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.focus-controls button:hover {
+  filter: brightness(1.1);
+}
+
+.focus-session-item {
+  padding: 12px 16px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+/* Quote & weather widgets */
+.quote-text {
+  color: var(--text-primary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.quote-author {
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+.temperature h2 {
+  color: var(--focus-accent);
+  font-size: 2rem;
+}
+
+.location h4,
+.weather-description h5 {
+  color: var(--text-secondary);
+}
+
+/* Quick actions */
+.quick-action-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quick-action-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* Expense filter */
+.expense-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+/* Urgent tasks table */
+.urgent-task-header-row {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.urgent-task-cards {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.urgent-task-cards:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .theme-toggle-label {
+    display: none;
+  }
+
+  .theme-toggle-btn {
+    padding: 8px 10px;
+  }
+}
+
+/* Shimmer loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shimmer-line {
+  height: 16px;
+  background: linear-gradient(90deg, 
+    var(--card-border) 0%, 
+    var(--hover-bg) 50%, 
+    var(--card-border) 100%);
+  background-size: 1000px 100%;
+  border-radius: 4px;
+  animation: shimmer 2s infinite;
+}
+
+.shimmer-temp {
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.shimmer-location {
+  height: 20px;
+}
+
+.shimmer-desc {
+  height: 16px;
+}
+
+.shimmer-quote-text {
+  height: 48px;
+}
+
+.shimmer-quote-author {
+  height: 16px;
+  margin-top: 8px;
+}

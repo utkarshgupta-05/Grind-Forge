@@ -303,13 +303,13 @@ export function renderCategoryBreakdown(container) {
     const breakdownHTML = sortedCategories.map(([category, amount]) => {
         const percentage = thisMonthTotal > 0 ? ((amount / thisMonthTotal) * 100).toFixed(1) : 0;
         return `
-            <div class="category-breakdown-item" style="margin-bottom: 16px;">
-                <div class="category-info" style="display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: 500; font-size: 0.95rem;">
+            <div class="category-breakdown-item">
+                <div class="category-info">
                     <span class="category-name"><strong>${category}</strong></span>
                     <span class="category-values">${formatCurrency(amount)} (${percentage}%)</span>
                 </div>
-                <div class="progress-bar" style="background-color: var(--border); border-radius: 999px; height: 8px; width: 100%; overflow: hidden;">
-                    <div class="progress-fill" style="background-color: var(--success); width: ${percentage}%; height: 100%; border-radius: inherit;"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%"></div>
                 </div>
             </div>
         `;

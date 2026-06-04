@@ -7,7 +7,7 @@ const DEFAULT_DASHBOARD_TAB = 'all';
 let currentDashboardTab = DEFAULT_DASHBOARD_TAB;
 
 function formatCurrency(value) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
 }
 
 function formatNumber(value) {
@@ -458,7 +458,9 @@ export function renderRecentActivities(tabName = currentDashboardTab) {
 
     const activityHTML = activities.map(activity => {
         const actionText = getActivityActionText(activity.type);
-        const moduleLabel = activity.module ? `<span class="activity-module">${activity.module}</span>` : '';
+        const moduleLabel = activity.module
+            ? `<span class="activity-module activity-module--${activity.module}">${activity.module}</span>`
+            : '';
         const dateText = activity.timestamp ? new Date(activity.timestamp).toLocaleString() : 'Unknown Date';
         return `
             <div class="activity-item">

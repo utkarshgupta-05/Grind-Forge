@@ -1,6 +1,7 @@
 import { AppState } from "./state.js";
 import { highlightActiveLink } from "./router.js";
 import { getCurrentPage } from "./router.js";
+import { initTheme, bindThemeToggle } from "./theme.js";
 import { initTasksPage } from "./tasks.js";
 import { initHomePage } from "./home.js";
 import { initDashboardPage } from "./dashboard.js";
@@ -11,9 +12,12 @@ import { initExpensesPage } from "./expenses.js";
 
 AppState.load();
 
+initTheme();
+bindThemeToggle();
 highlightActiveLink();
 
 const currentPage = getCurrentPage();
+document.body.dataset.page = currentPage;
 
 if (currentPage === "index.html") {
     initHomePage();

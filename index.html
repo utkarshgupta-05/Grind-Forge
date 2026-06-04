@@ -5,8 +5,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Productivity Dashboard</title>
+  <script src="js/theme-init.js"></script>
   <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
 </head>
 
 <body>
@@ -40,6 +43,10 @@
           </div>
         </div>
         <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="false">
+            <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
+            <span class="theme-toggle-label">Light</span>
+          </button>
           <div class="dashboard-link">
             <a href="dashboard.html">Dashboard</a>
           </div>
@@ -79,21 +86,34 @@
         <section id="widgets" class="widgets">
           <div class="widget-container">
             <article class="weather-card">
-              <div class="temperature">
-                <h2>25°C</h2>
+              <div class="shimmer-container weather-shimmer" id="weather-shimmer">
+                <div class="shimmer-line shimmer-temp"></div>
+                <div class="shimmer-line shimmer-location"></div>
+                <div class="shimmer-line shimmer-desc"></div>
               </div>
-              <div class="location">
-                <h4>Varanasi, Uttar Pradesh</h4>
-              </div>
-              <div class="weather-description">
-                <h5>Sunny</h5>
+              <div class="weather-content" id="weather-content" style="display: none;">
+                <div class="temperature">
+                  <h2>--°C</h2>
+                </div>
+                <div class="location">
+                  <h4>Loacation Unavailable</h4>
+                </div>
+                <div class="weather-description">
+                  <h5>Unable to fecth weather</h5>
+                </div>
               </div>
             </article>
             <article class="quote-card">
-              <div class="quote-text">
-                "The secret of getting ahead is getting started."
+              <div class="shimmer-container quote-shimmer" id="quote-shimmer">
+                <div class="shimmer-line shimmer-quote-text"></div>
+                <div class="shimmer-line shimmer-quote-author"></div>
               </div>
-              <div class="quote-author">- Mark Twain</div>
+              <div class="quote-content" id="quote-content" style="display: none;">
+                <div class="quote-text">
+                  "The secret of getting ahead is getting started."
+                </div>
+                <div class="quote-author">- Mark Twain</div>
+              </div>
             </article>
           </div>
         </section>
