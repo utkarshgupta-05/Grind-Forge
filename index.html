@@ -60,85 +60,160 @@
 
       <div class="page-content">
 
-        <section id="home-quick-stats" class="quick-stats">
-          <div class="stat-card">
-            <h4>Total Tasks : </h4>
-            <p id="home-total-tasks" class="stat-value">0</p>
-          </div>
-          <div class="stat-card">
-            <h4>Tasks completed today : </h4>
-            <p id="home-completed-today" class="stat-value">0</p>
-          </div>
-          <div class="stat-card">
-            <h4>Pending Tasks : </h4>
-            <p id="home-pending-tasks" class="stat-value">0</p>
-          </div>
-          <div class="stat-card">
-            <h4>Focus Sessions : </h4>
-            <p id="home-focus-sessions" class="stat-value">0</p>
-          </div>
+        <!-- HERO METRICS -->
+        <section class="dashboard-stats-grid quick-stats">
+          <article class="stat-card" style="border-left: 3px solid var(--tasks-accent);">
+            <h3>Tasks Completed Today</h3>
+            <p id="home-completed-today">0</p>
+            <span style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;"><span id="home-pending-tasks">0</span> pending tasks remaining</span>
+          </article>
+          <article class="stat-card" style="border-left: 3px solid var(--focus-accent);">
+            <h3>Focus Sessions</h3>
+            <p id="home-focus-sessions">0</p>
+            <span style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Total sessions completed</span>
+          </article>
+          <article class="stat-card" style="border-left: 3px solid var(--expense-accent);">
+            <h3>Total Tasks</h3>
+            <p id="home-total-tasks">0</p>
+            <span style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Lifetime tasks tracked</span>
+          </article>
         </section>
 
-        <section id="widgets" class="widgets">
-          <div class="widget-container">
-            <article class="weather-card">
-              <div class="shimmer-container weather-shimmer" id="weather-shimmer">
-                <div class="shimmer-line shimmer-temp"></div>
-                <div class="shimmer-line shimmer-location"></div>
-                <div class="shimmer-line shimmer-desc"></div>
-              </div>
-              <div class="weather-content" id="weather-content" style="display: none;">
-                <div class="temperature">
-                  <h2>--°C</h2>
-                </div>
-                <div class="location">
-                  <h4>Loacation Unavailable</h4>
-                </div>
-                <div class="weather-description">
-                  <h5>Unable to fecth weather</h5>
-                </div>
-              </div>
-            </article>
-            <article class="quote-card">
-              <div class="shimmer-container quote-shimmer" id="quote-shimmer">
-                <div class="shimmer-line shimmer-quote-text"></div>
-                <div class="shimmer-line shimmer-quote-author"></div>
-              </div>
-              <div class="quote-content" id="quote-content" style="display: none;">
-                <div class="quote-text">
-                  "The secret of getting ahead is getting started."
-                </div>
-                <div class="quote-author">- Mark Twain</div>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section id="urgent-tasks" class="urgent-tasks">
-          <h3 class="urgent-task-title">Urgent Tasks</h3>
-
-          <div class="urgent-task-list">
-            <div class="urgent-task-header-row">
-              <div></div>
-              <div>Task</div>
-              <div>Priority</div>
-              <div>Due</div>
+        <!-- WEATHER & QUOTE SECTION (Widgets) -->
+        <section id="widgets" class="widgets widget-container" style="margin-top: 24px;">
+          <article class="weather-card">
+            <div class="shimmer-container weather-shimmer" id="weather-shimmer">
+              <div class="shimmer-line shimmer-temp"></div>
+              <div class="shimmer-line shimmer-location"></div>
+              <div class="shimmer-line shimmer-desc"></div>
             </div>
-
-          <div id="urgent-task-cards-container">
-              <!-- Dynamic urgent tasks rendered by home.js -->
-          </div>
-          </div>
+            <div class="weather-content" id="weather-content" style="display: none;">
+              <div class="temperature">
+                <h2>--°C</h2>
+              </div>
+              <div class="location">
+                <h4>Location Unavailable</h4>
+              </div>
+              <div class="weather-description">
+                <h5>Unable to fetch weather</h5>
+              </div>
+            </div>
+          </article>
+          <article class="quote-card">
+            <div class="shimmer-container quote-shimmer" id="quote-shimmer">
+              <div class="shimmer-line shimmer-quote-text"></div>
+              <div class="shimmer-line shimmer-quote-author"></div>
+            </div>
+            <div class="quote-content" id="quote-content" style="display: none;">
+              <div class="quote-text">
+                "The secret of getting ahead is getting started."
+              </div>
+              <div class="quote-author">- Mark Twain</div>
+            </div>
+          </article>
         </section>
 
-        <section id="quick-actions" class="quick-actions">
-          <h3 class="quick-actions-title">Quick Actions</h3>
-          <div class="quick-actions-list">
-            <button id="quick-add-task" class="quick-action-btn">Add Task</button>
-            <button id="quick-add-note" class="quick-action-btn">Add Note</button>
-            <button id="quick-start-focus" class="quick-action-btn">Start Focus Session</button>
+        <!-- ROW 1: PRIORITY TASKS & POMODORO TIMER -->
+        <div class="dashboard-split" style="margin-top: 24px;">
+          
+          <!-- LEFT: Priority Tasks -->
+          <div class="split-main">
+            <section id="urgent-tasks" class="urgent-tasks form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--tasks-accent); height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
+                <h3 class="split-section-title" style="margin: 0; color: var(--tasks-accent);">Priority Tasks</h3>
+              </div>
+              <div class="urgent-task-list">
+                <div class="urgent-task-header-row">
+                  <div></div>
+                  <div>Task</div>
+                  <div>Priority</div>
+                  <div>Due</div>
+                </div>
+                <div id="urgent-task-cards-container">
+                    <!-- Dynamic urgent tasks rendered by home.js -->
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+
+          <!-- RIGHT: Pomodoro Timer -->
+          <div class="split-aside">
+            <section id="home-pomodoro-widget" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--focus-accent); height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="split-section-title" style="margin: 0; color: var(--focus-accent);">Pomodoro Timer</h3>
+                <span style="font-size: 1.2rem;">🎯</span>
+              </div>
+              <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+                <div class="timer-display-circle" style="width: 160px; height: 160px; border-radius: 50%; border: 4px solid var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: radial-gradient(circle, var(--surface-elevated) 0%, var(--card-bg) 100%); box-shadow: inset 0 0 20px rgba(0,0,0,0.3);">
+                  <div id="home-timer-display" style="font-size: 2.2rem; font-weight: 700; color: var(--focus-accent); font-family: monospace;">25:00</div>
+                  <div id="home-timer-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Focus</div>
+                </div>
+                <div style="width: 100%; margin-top: 8px;">
+                  <input type="text" id="home-timer-session-name" placeholder="Session Name (optional)" style="width: 100%; background-color: var(--main-bg); border: 1px solid var(--card-border); border-radius: 6px; color: var(--text-primary); padding: 8px 12px; font-size: 0.85rem; text-align: center;" />
+                </div>
+                <div style="display: flex; gap: 12px; width: 100%;">
+                  <button id="home-timer-start-btn" class="primary-btn" style="flex: 1; background-color: var(--focus-accent); padding: 10px; font-size: 0.9rem; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer;">Start</button>
+                  <button id="home-timer-pause-btn" class="secondary-btn" style="flex: 1; padding: 10px; font-size: 0.9rem; border: 1px solid var(--card-border); border-radius: 8px; background: transparent; color: var(--text-secondary); cursor: pointer;" disabled>Pause</button>
+                  <button id="home-timer-reset-btn" class="secondary-btn" style="padding: 10px; font-size: 0.9rem; border: 1px solid var(--card-border); border-radius: 8px; background: transparent; color: var(--text-secondary); cursor: pointer;">Reset</button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: RECENT EXPENSES & QUICK NOTES -->
+        <div class="dashboard-split" style="margin-top: 24px;">
+          
+          <!-- LEFT: Recent Expenses -->
+          <div class="split-main">
+            <section id="recent-expenses" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--expense-accent); height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="split-section-title" style="margin: 0; color: var(--expense-accent);">Recent Expenses</h3>
+                <a href="expenses.html" style="font-size: 0.85rem; color: var(--expense-accent); font-weight: 600;">+ Add Expense</a>
+              </div>
+              <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--hover-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--card-border);">
+                  <div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Spent This Week</div>
+                    <div style="font-size: 1.6rem; font-weight: 700; color: var(--expense-accent); margin-top: 4px;" id="home-expenses-total">$0.00</div>
+                  </div>
+                  <div style="flex: 1; margin-left: 32px; max-width: 300px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">
+                      <span>Weekly Budget</span>
+                      <span id="home-expenses-budget-limit">$500.00</span>
+                    </div>
+                    <div class="progress-bar" style="background-color: var(--card-border); border-radius: 999px; height: 8px; overflow: hidden;">
+                      <div id="home-expenses-progress-fill" class="progress-fill" style="background-color: var(--expense-accent); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="home-expense-list-container">
+                  <!-- Dynamic expenses rendered by home.js -->
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- RIGHT: Quick Notes -->
+          <div class="split-aside">
+            <section id="home-quick-notes-widget" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--notes-accent); height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="split-section-title" style="margin: 0; color: var(--notes-accent);">Quick Notes</h3>
+                <button id="home-save-note-btn" title="Save draft to Notes list" style="background: none; border: none; color: var(--notes-accent); font-size: 1.25rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center;">➕</button>
+              </div>
+              <div style="padding: 20px;">
+                <textarea id="home-note-textarea" placeholder="Jot down thoughts here..." style="width: 100%; height: 120px; background-color: var(--main-bg); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-primary); padding: 12px; font-size: 0.9rem; resize: none; font-family: inherit; line-height: 1.5;" aria-label="Quick notes draft"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.75rem;">
+                  <span id="home-note-status" style="color: var(--text-muted);">Saved Draft</span>
+                  <span class="activity-module" style="background-color: var(--notes-accent); color: var(--btn-text); border-radius: 4px; padding: 2px 6px; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Draft</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
       </div>
 
     </main>

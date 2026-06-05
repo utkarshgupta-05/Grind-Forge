@@ -2,7 +2,7 @@ import { getTaskStats } from "./tasks.js";
 import { AppState } from "./state.js";
 import { storageGet, storageSet } from "./storage.js";
 import { WEATHER_API_KEY } from "./config.js";
-import { escapeHTML, getDaysDiff } from "./utils.js";
+import { escapeHTML, getDaysDiff, formatCurrency } from "./utils.js";
 
 
 
@@ -12,7 +12,9 @@ export function initHomePage() {
     renderUrgentTasks();
     renderWeathercard();
     renderQuoteCard();
-    wireQuickActions();
+    renderRecentExpenses();
+    initHomeTimer();
+    initQuickNotes();
 }
 
 
@@ -87,26 +89,251 @@ export function renderUrgentTasks() {
     container.innerHTML = tasksHTML;
 }
 
-export function wireQuickActions() {
-    const addTaskBtn = document.getElementById("quick-add-task");
-    const addNoteBtn = document.getElementById("quick-add-note");
-    const focusBtn = document.getElementById("quick-start-focus");
+export function renderRecentExpenses() {
+    const container = document.getElementById("home-expense-list-container");
+    const totalEl = document.getElementById("home-expenses-total");
+    const progressFillEl = document.getElementById("home-expenses-progress-fill");
 
-    if (addTaskBtn) {
-        addTaskBtn.addEventListener("click", () => {
-            window.location.href = "tasks.html";
-        });
+    if (!container) return;
+
+    const expenses = (AppState.expenses || []);
+    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
+
+    // Calculate total spent in current week (last 7 days)
+    const today = new Date();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(today.getDate() - 7);
+
+    const weeklySpent = expenses.reduce((acc, curr) => {
+        const expDate = new Date(curr.expenseDate);
+        if (expDate >= oneWeekAgo && expDate <= today) {
+            return acc + curr.expenseAmount;
+        }
+        return acc;
+    }, 0);
+
+    if (totalEl) {
+        totalEl.textContent = formatCurrency(weeklySpent);
     }
-    if (addNoteBtn) {
-        addNoteBtn.addEventListener("click", () => {
-            window.location.href = "notes.html";
-        });
+
+    if (progressFillEl) {
+        // Budget limit is 500
+        const percentage = Math.min(100, (weeklySpent / 500) * 100);
+        progressFillEl.style.width = `${percentage}%`;
     }
-    if (focusBtn) {
-        focusBtn.addEventListener("click", () => {
-            window.location.href = "focus.html";
-        });
+
+    const recent = sortedExpenses.slice(0, 3);
+    if (recent.length === 0) {
+        container.innerHTML = `
+            <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding: 16px; background: var(--hover-bg); border-radius: 8px; text-align: center; border: 1px solid var(--card-border);">
+                No recent expenses logged.
+            </div>`;
+        return;
     }
+
+    const categoryIcons = {
+        food: "🍔",
+        transport: "🚗",
+        utilities: "⚡",
+        entertainment: "🎬",
+        shopping: "🛒",
+        housing: "🏠",
+        health: "⚕️",
+        education: "🎓",
+        other: "💸"
+    };
+
+    container.innerHTML = recent.map(exp => {
+        const cat = exp.expenseCategory ? exp.expenseCategory.toLowerCase() : "other";
+        const icon = categoryIcons[cat] || "💸";
+        const formattedDate = exp.expenseDate ? new Date(exp.expenseDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+        return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--card-border);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--hover-bg); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        ${icon}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${escapeHTML(exp.expenseTitle)}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                            ${escapeHTML(exp.expenseCategory.charAt(0).toUpperCase() + exp.expenseCategory.slice(1))} &bull; ${escapeHTML(formattedDate)}
+                        </div>
+                    </div>
+                </div>
+                <div style="font-weight: 700; color: var(--expense-accent); font-size: 0.95rem;">
+                    -${formatCurrency(exp.expenseAmount)}
+                </div>
+            </div>`;
+    }).join("");
+}
+
+let homeTimeRemaining = 25 * 60; // 25 minutes
+let homeTimerInterval = null;
+let homeTimerIsRunning = false;
+let homeSessionStartedAt = null;
+let homeSessionEndTime = null;
+
+export function initHomeTimer() {
+    const display = document.getElementById("home-timer-display");
+    const startBtn = document.getElementById("home-timer-start-btn");
+    const pauseBtn = document.getElementById("home-timer-pause-btn");
+    const resetBtn = document.getElementById("home-timer-reset-btn");
+    const nameInput = document.getElementById("home-timer-session-name");
+
+    if (!display || !startBtn || !pauseBtn || !resetBtn) return;
+
+    function updateHomeTimerDisplay() {
+        const minutes = Math.floor(homeTimeRemaining / 60).toString().padStart(2, '0');
+        const seconds = (homeTimeRemaining % 60).toString().padStart(2, '0');
+        if (homeTimeRemaining > 0) {
+            display.textContent = `${minutes}:${seconds}`;
+        } else {
+            display.textContent = "00:00";
+        }
+    }
+
+    startBtn.addEventListener("click", () => {
+        if (homeTimerIsRunning) return;
+        homeTimerIsRunning = true;
+
+        if (!homeSessionStartedAt) {
+            homeSessionStartedAt = new Date().toISOString();
+        }
+
+        homeSessionEndTime = Date.now() + homeTimeRemaining * 1000;
+
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+
+        homeTimerInterval = setInterval(() => {
+            const remaining = Math.max(0, Math.round((homeSessionEndTime - Date.now()) / 1000));
+            homeTimeRemaining = remaining;
+            updateHomeTimerDisplay();
+
+            if (homeTimeRemaining <= 0) {
+                clearInterval(homeTimerInterval);
+                homeTimerIsRunning = false;
+                homeSessionEndTime = null;
+                
+                const sessionName = nameInput ? nameInput.value.trim() : "Unnamed Session";
+                const completedSession = {
+                    sessionId: crypto.randomUUID(),
+                    sessionName: sessionName || "Unnamed Session",
+                    durationMinutes: 25,
+                    startedAt: homeSessionStartedAt,
+                    completedAt: new Date().toISOString()
+                };
+                if (!AppState.focusSessions) AppState.focusSessions = [];
+                AppState.focusSessions.push(completedSession);
+                AppState.save();
+
+                homeSessionStartedAt = null;
+                if (nameInput) nameInput.value = "";
+                
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                homeTimeRemaining = 25 * 60;
+                updateHomeTimerDisplay();
+
+                display.textContent = "Complete!";
+                setTimeout(() => {
+                    updateHomeTimerDisplay();
+                }, 3000);
+
+                renderFocusSessionsStat();
+            }
+        }, 1000);
+    });
+
+    pauseBtn.addEventListener("click", () => {
+        if (!homeTimerIsRunning) return;
+        homeTimerIsRunning = false;
+        clearInterval(homeTimerInterval);
+        homeSessionEndTime = null;
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    });
+
+    resetBtn.addEventListener("click", () => {
+        clearInterval(homeTimerInterval);
+        homeTimerIsRunning = false;
+        homeTimeRemaining = 25 * 60;
+        homeSessionStartedAt = null;
+        homeSessionEndTime = null;
+        updateHomeTimerDisplay();
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        if (nameInput) nameInput.value = "";
+    });
+
+    updateHomeTimerDisplay();
+}
+
+export function initQuickNotes() {
+    const textarea = document.getElementById("home-note-textarea");
+    const saveBtn = document.getElementById("home-save-note-btn");
+    const statusEl = document.getElementById("home-note-status");
+
+    if (!textarea || !saveBtn || !statusEl) return;
+
+    // Load draft
+    const draft = storageGet("quick-note-draft");
+    if (draft) {
+        textarea.value = draft;
+        const draftTime = storageGet("quick-note-draft-time");
+        if (draftTime) {
+            const time = new Date(draftTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            statusEl.textContent = `Draft (autosaved at ${time})`;
+        }
+    }
+
+    // Auto-save on typing
+    textarea.addEventListener("input", () => {
+        const val = textarea.value;
+        storageSet("quick-note-draft", val);
+        const time = new Date();
+        storageSet("quick-note-draft-time", time.toISOString());
+        statusEl.textContent = `Draft auto-saved`;
+    });
+
+    // Save Note to AppState.notes on button click
+    saveBtn.addEventListener("click", () => {
+        const val = textarea.value.trim();
+        if (!val) {
+            statusEl.textContent = "Cannot save empty note!";
+            statusEl.style.color = "var(--danger)";
+            setTimeout(() => {
+                statusEl.textContent = "Saved Draft";
+                statusEl.style.color = "var(--text-muted)";
+            }, 2000);
+            return;
+        }
+
+        const dateStr = new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        const noteTitle = `Quick Note - ${dateStr}`;
+        const newNote = {
+            noteId: crypto.randomUUID(),
+            noteTitle: noteTitle,
+            noteContent: val,
+            createdAt: new Date().toISOString(),
+            updatedAt: null
+        };
+
+        if (!AppState.notes) AppState.notes = [];
+        AppState.notes.push(newNote);
+        AppState.save();
+
+        textarea.value = "";
+        storageSet("quick-note-draft", "");
+        storageSet("quick-note-draft-time", "");
+
+        statusEl.textContent = "Saved to Notes list!";
+        statusEl.style.color = "var(--success)";
+        setTimeout(() => {
+            statusEl.textContent = "New Draft";
+            statusEl.style.color = "var(--text-muted)";
+        }, 3000);
+    });
 }
 
 

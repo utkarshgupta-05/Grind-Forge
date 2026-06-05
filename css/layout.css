@@ -219,3 +219,30 @@ body {
     width: 0%;
 }
 
+/* Split Column Layouts */
+.dashboard-split {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    width: 100%;
+}
+
+.split-main {
+    flex: 1.6;
+    display: flex;
+    flex-direction: column;
+}
+
+.split-aside {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 992px) {
+    .dashboard-split {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
