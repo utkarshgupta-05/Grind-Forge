@@ -33,7 +33,7 @@
     <main class="content" role="main">
       <header class="app-header">
         <div class="logo">
-          <img src="assets/images/logo.png" alt="Productivity App Logo" class="logo-icon">
+          <img src="assets/images/logo-dark.png" alt="Productivity App Logo" class="logo-icon">
         </div>
         <div class="welcome-msg">
           <span class="welcome-text">Welcome, User!</span>
@@ -50,9 +50,9 @@
           <div class="dashboard-link">
             <a href="dashboard.html">Dashboard</a>
           </div>
-          <div class="notification">
-            <span class="notification-icon">notification</span>
-            <span class="notification-count">3</span>
+          <div class="notification" id="notification-widget">
+            <span class="notification-icon" aria-label="Notifications">🔔</span>
+            <span class="notification-count" id="notification-badge" hidden>0</span>
           </div>
           <div class="profile-avatar">Avatar</div>
         </div>

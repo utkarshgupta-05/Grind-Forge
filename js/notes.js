@@ -1,5 +1,5 @@
 import { AppState } from "./state.js";
-import { validateRequired } from "./utils.js";
+import { validateRequired, escapeHTML } from "./utils.js";
 
 let editingNoteId = null;
 
@@ -104,9 +104,9 @@ export function renderNotes() {
     }
 
     const notesHTML = notes.map(note => `
-        <div class="note-item" data-note-id="${note.noteId}">
-            <h3>${note.noteTitle}</h3>
-            <p>${note.noteContent}</p>
+        <div class="note-item" data-note-id="${escapeHTML(note.noteId)}">
+            <h3>${escapeHTML(note.noteTitle)}</h3>
+            <p>${escapeHTML(note.noteContent)}</p>
             <p class="note-date">Created: ${new Date(note.createdAt).toLocaleString()}</p>
             <div class="note-actions">
                 <button type="button" class="edit-note-btn" data-action="edit">Edit</button>

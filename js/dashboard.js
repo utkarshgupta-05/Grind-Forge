@@ -2,6 +2,7 @@ import { getTaskStats } from './tasks.js';
 import { getNoteStats } from './notes.js';
 import { getExpenseStats } from './expenses.js';
 import { AppState } from './state.js';
+import { escapeHTML } from './utils.js';
 
 const DEFAULT_DASHBOARD_TAB = 'all';
 let currentDashboardTab = DEFAULT_DASHBOARD_TAB;
@@ -46,7 +47,7 @@ function getStatsForDashboardTab(tabName) {
             { label: 'Notes Updated This Week', value: formatNumber(stats.notesUpdatedThisWeek) },
             { label: 'Newest Note', value: stats.latestNote ? stats.latestNote.noteTitle : 'None' },
             { label: 'Oldest Note', value: stats.oldestNote ? stats.oldestNote.noteTitle : 'None' },
-            { label: 'Notes This Week', value: formatNumber(stats.notesUpdatedThisWeek) },
+            { label: 'Updated vs Created Today', value: `${formatNumber(stats.notesUpdatedThisWeek)} / ${formatNumber(stats.notesCreatedToday)}` },
         ];
     }
 
@@ -433,7 +434,7 @@ export function getInsightsForTab(tabName = currentDashboardTab) {
             const counts = {
                 tasks: taskActivityThisWeek,
                 notes: (notes.notesCreatedToday || 0) + (notes.notesUpdatedThisWeek || 0),
-                focus: focus.sessionsThisWeek || 0,
+                focus: focus.completedThisWeek || 0,
                 expenses: (expenses.totalCount || 0),
             };
             const winner = Object.keys(counts).reduce((best, key) => {
@@ -461,16 +462,16 @@ export function renderRecentActivities(tabName = currentDashboardTab) {
     const activityHTML = activities.map(activity => {
         const actionText = getActivityActionText(activity.type);
         const moduleLabel = activity.module
-            ? `<span class="activity-module activity-module--${activity.module}">${activity.module}</span>`
+            ? `<span class="activity-module activity-module--${escapeHTML(activity.module)}">${escapeHTML(activity.module)}</span>`
             : '';
         const dateText = activity.timestamp ? new Date(activity.timestamp).toLocaleString() : 'Unknown Date';
         return `
             <div class="activity-item">
                 <div class="activity-item-header">
-                    <strong>${actionText}</strong>
+                    <strong>${escapeHTML(actionText)}</strong>
                     ${moduleLabel}
                 </div>
-                <p class="activity-title">${activity.title}</p>
+                <p class="activity-title">${escapeHTML(activity.title)}</p>
                 <p class="activity-date">${dateText}</p>
             </div>
         `;
@@ -564,8 +565,8 @@ export function renderDashboardInsights(tabName = currentDashboardTab) {
 
     insightsContainer.innerHTML = insightItems.map(item => `
         <div class="insight-item">
-            <h3>${item.label}</h3>
-            <p>${item.value}</p>
+            <h3>${escapeHTML(item.label)}</h3>
+            <p>${escapeHTML(item.value)}</p>
         </div>
     `).join('');
 }

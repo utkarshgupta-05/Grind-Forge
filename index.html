@@ -50,9 +50,9 @@
           <div class="dashboard-link">
             <a href="dashboard.html">Dashboard</a>
           </div>
-          <div class="notification">
-            <span class="notification-icon">notification</span>
-            <span class="notification-count">3</span>
+          <div class="notification" id="notification-widget">
+            <span class="notification-icon" aria-label="Notifications">🔔</span>
+            <span class="notification-count" id="notification-badge" hidden>0</span>
           </div>
           <div class="profile-avatar">Avatar</div>
         </div>
@@ -75,7 +75,7 @@
           </div>
           <div class="stat-card">
             <h4>Focus Sessions : </h4>
-            <p id="home-focus-sessions" class="stat-value">3</p>
+            <p id="home-focus-sessions" class="stat-value">0</p>
           </div>
         </section>
 
@@ -125,35 +125,18 @@
               <div>Due</div>
             </div>
 
-            <div class="urgent-task-cards">
-              <input type="checkbox" />
-              <div>Complete dashboard</div>
-              <div>High</div>
-              <div>Today</div>
-            </div>
-
-            <div class="urgent-task-cards">
-              <input type="checkbox" />
-              <div>Finish DSA problem</div>
-              <div>High</div>
-              <div>Tomorrow</div>
-            </div>
-
-            <div class="urgent-task-cards">
-              <input type="checkbox" />
-              <div>Review notes</div>
-              <div>Med</div>
-              <div>This Week</div>
-            </div>
+          <div id="urgent-task-cards-container">
+              <!-- Dynamic urgent tasks rendered by home.js -->
+          </div>
           </div>
         </section>
 
         <section id="quick-actions" class="quick-actions">
           <h3 class="quick-actions-title">Quick Actions</h3>
           <div class="quick-actions-list">
-            <button class="quick-action-btn">Add Task</button>
-            <button class="quick-action-btn">Add Note</button>
-            <button class="quick-action-btn">Start Focus Session</button>
+            <button id="quick-add-task" class="quick-action-btn">Add Task</button>
+            <button id="quick-add-note" class="quick-action-btn">Add Note</button>
+            <button id="quick-start-focus" class="quick-action-btn">Start Focus Session</button>
           </div>
         </section>
       </div>

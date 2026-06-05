@@ -4,6 +4,7 @@ import {
     validateRequired,
     formatDate,
     getDaysDiff,
+    escapeHTML,
 } from "./utils.js";
 
 let currentFilter = "all";
@@ -31,7 +32,7 @@ export function createTask(taskData) {
         }
         dueDate = due.toISOString();
     }
-    const taskId = generateId();
+    const taskId = crypto.randomUUID();
     const newTask = {
         taskId: taskId,
         taskTitle: taskData.title,
@@ -172,21 +173,21 @@ export function renderTasks(container, filter = "all") {
     const tasksHTML = tasksToRender
         .map(
             (task) => `
-        <article class="task-card" data-task-id="${task.taskId}">
+        <article class="task-card" data-task-id="${escapeHTML(task.taskId)}">
                   <div class="task-card-header">
                     <div class="task-checkbox">
-                      <input type="checkbox" id="task-${task.taskId}-status" name="task-${task.taskId}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
-                      <label for="task-${task.taskId}-status">Mark as Complete</label>
+                      <input type="checkbox" id="task-${escapeHTML(task.taskId)}-status" name="task-${escapeHTML(task.taskId)}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
+                      <label for="task-${escapeHTML(task.taskId)}-status">Mark as Complete</label>
                     </div>
-                    <h3 class="task-title">${task.taskTitle}</h3>
+                    <h3 class="task-title">${escapeHTML(task.taskTitle)}</h3>
                   </div>
                   <div class="task-card-body">
-                    <p class="task-description">${task.taskDescription}</p>
+                    <p class="task-description">${escapeHTML(task.taskDescription)}</p>
                   </div>
                   <div class="task-card-footer">
                     <div class="task-meta">
                       <span class="task-due-date"><strong>Due:</strong> ${task.dueDate ? formatDate(task.dueDate) : "No due date"}</span>
-                      <span class="task-priority-badge ${task.priority.toLowerCase()}"><strong>Priority:</strong> ${task.priority}</span>
+                      <span class="task-priority-badge ${escapeHTML(task.priority.toLowerCase())}"><strong>Priority:</strong> ${escapeHTML(task.priority)}</span>
                     </div>
                     <div class="task-actions">
                       <button type="button" class="edit-btn" data-action="edit">Edit</button>

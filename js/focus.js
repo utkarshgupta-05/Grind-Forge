@@ -1,4 +1,5 @@
 import { AppState } from "./state.js";
+import { escapeHTML } from "./utils.js";
 
 
 const SESSION_DURATION_MINUTES = 25;
@@ -6,6 +7,7 @@ let timeRemaining = SESSION_DURATION_MINUTES * 60; // seconds
 let timerInterval = null;
 let isRunning = false;
 let sessionStartedAt = null;
+let sessionEndTime = null; // wall-clock end time in ms (fixes drift)
 
 
 
@@ -56,14 +58,20 @@ export function startFocusSession() {
         sessionStartedAt = new Date().toISOString();
     }
 
+    // Wall-clock fix: record when the session should end
+    sessionEndTime = Date.now() + timeRemaining * 1000;
+
     timerInterval = setInterval(() => {
-        timeRemaining--;
+        // Compute remaining from wall clock to avoid drift
+        const remaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+        timeRemaining = remaining;
 
         updateTimerDisplay();
 
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
             isRunning = false;
+            sessionEndTime = null;
             saveCompletedSession();
         }
     }, 1000);
@@ -75,6 +83,8 @@ export function pauseFocusSession() {
     }
     isRunning = false;
     clearInterval(timerInterval);
+    // timeRemaining is already accurate from last tick; sessionEndTime is no longer valid
+    sessionEndTime = null;
 }
 
 export function resetFocusSession() {
@@ -82,6 +92,7 @@ export function resetFocusSession() {
     isRunning = false;
     timeRemaining = SESSION_DURATION_MINUTES * 60;
     sessionStartedAt = null;
+    sessionEndTime = null;
     updateTimerDisplay();
 }
 
@@ -117,8 +128,8 @@ export function renderFocusHistory() {
     }
     const historyHTML = sessions.map(session => `
         <div class="focus-session-item">
-            <p><strong>${session.sessionName}</strong></p>
-            <p>Duration: ${session.durationMinutes} minutes</p>
+            <p><strong>${escapeHTML(session.sessionName)}</strong></p>
+            <p>Duration: ${escapeHTML(String(session.durationMinutes))} minutes</p>
             <p>Completed on: ${new Date(session.completedAt).toLocaleString()}</p>
         </div>
     `).join('');

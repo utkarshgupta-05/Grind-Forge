@@ -1,4 +1,19 @@
-// utils.js — helpers: date formatting, id generation
+// utils.js — helpers: date formatting, id generation, XSS escaping
+
+/**
+ * Escape user-supplied strings before inserting into innerHTML.
+ * Must be used everywhere user content is rendered into HTML templates.
+ */
+export function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function generateId() {
     const randNum = Math.random();
     const hex = randNum.toString(16);
@@ -8,18 +23,21 @@ export function generateId() {
 }
 
 export function formatDate(date) {
-    if(date===undefined || date === null) {
+    if (date === undefined || date === null) {
         return 'Invalid date';
     }
-    const trimDate = date.trim();
-    if(trimDate === '') {
-        return 'Invalid date';
+    // Guard: only call .trim() if it's actually a string
+    if (typeof date === 'string') {
+        const trimDate = date.trim();
+        if (trimDate === '') {
+            return 'Invalid date';
+        }
     }
     const d = new Date(date);
     if (isNaN(d.getTime())) {
         return 'Invalid date';
     }
-    let formattedDate = d.toLocaleDateString('en-GB', {
+    const formattedDate = d.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
         year: 'numeric'

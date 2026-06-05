@@ -9,10 +9,11 @@ export const AppState = {
   settings: {},
 
   load() {
-    this.tasks = storageGet("app_tasks") || [];
-    this.notes = storageGet("app_notes") || [];
-    this.focusSessions = storageGet("app_focus_sessions") || [];
-    this.expenses = storageGet("app_expenses") || [];
+    const safeArray = (val) => Array.isArray(val) ? val : [];
+    this.tasks = safeArray(storageGet("app_tasks"));
+    this.notes = safeArray(storageGet("app_notes"));
+    this.focusSessions = safeArray(storageGet("app_focus_sessions"));
+    this.expenses = safeArray(storageGet("app_expenses"));
     this.settings = storageGet("app_settings") || {};
   },
 

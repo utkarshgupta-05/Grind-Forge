@@ -1,5 +1,5 @@
 import { AppState } from "./state.js";
-import { validateRequired, formatCurrency, formatDate } from "./utils.js";
+import { validateRequired, formatCurrency, formatDate, escapeHTML } from "./utils.js";
 
 let currentFilter = 'all';
 let editingExpenseId = null;
@@ -229,10 +229,10 @@ export function renderExpenseList(container, filter = "all") {
         return;
     }
     const expensesHTML = expenses.map((expense) => `
-        <article class="expense-card" data-expense-id="${expense.expenseId}">
-            <h3 class="expense-title">${expense.expenseTitle}</h3>
+        <article class="expense-card" data-expense-id="${escapeHTML(expense.expenseId)}">
+            <h3 class="expense-title">${escapeHTML(expense.expenseTitle)}</h3>
             <p class="expense-amount">${formatCurrency(expense.expenseAmount)}</p>
-            <p class="expense-category">${expense.expenseCategory}</p>
+            <p class="expense-category">${escapeHTML(expense.expenseCategory)}</p>
             <p class="expense-date">${formatDate(expense.expenseDate)}</p>
             <div class="expense-actions">
                 <button type="button" class="edit-btn" data-action="edit">Edit</button>
@@ -306,7 +306,7 @@ export function renderCategoryBreakdown(container) {
         return `
             <div class="category-breakdown-item">
                 <div class="category-info">
-                    <span class="category-name"><strong>${category}</strong></span>
+                    <span class="category-name"><strong>${escapeHTML(category)}</strong></span>
                     <span class="category-values">${formatCurrency(amount)} (${percentage}%)</span>
                 </div>
                 <div class="progress-bar">
