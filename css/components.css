@@ -198,6 +198,90 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   color: var(--expense-accent);
 }
 
+/* Dashboard tab-specific stat card borders & text colors */
+.page-content[data-active-tab="all"] .stat-card:nth-child(1),
+.page-content[data-active-tab="all"] .stat-card:nth-child(2) {
+  border-left: 3px solid var(--tasks-accent);
+}
+.page-content[data-active-tab="all"] .stat-card:nth-child(1) p,
+.page-content[data-active-tab="all"] .stat-card:nth-child(2) p {
+  color: var(--tasks-accent) !important;
+}
+
+.page-content[data-active-tab="all"] .stat-card:nth-child(3) {
+  border-left: 3px solid var(--notes-accent);
+}
+.page-content[data-active-tab="all"] .stat-card:nth-child(3) p {
+  color: var(--notes-accent) !important;
+}
+
+.page-content[data-active-tab="all"] .stat-card:nth-child(4),
+.page-content[data-active-tab="all"] .stat-card:nth-child(5) {
+  border-left: 3px solid var(--expense-accent);
+}
+.page-content[data-active-tab="all"] .stat-card:nth-child(4) p,
+.page-content[data-active-tab="all"] .stat-card:nth-child(5) p {
+  color: var(--expense-accent) !important;
+}
+
+.page-content[data-active-tab="all"] .stat-card:nth-child(6) {
+  border-left: 3px solid var(--focus-accent);
+}
+.page-content[data-active-tab="all"] .stat-card:nth-child(6) p {
+  color: var(--focus-accent) !important;
+}
+
+/* Specific tabs: uniform accents */
+.page-content[data-active-tab="tasks"] .stat-card {
+  border-left: 3px solid var(--tasks-accent);
+}
+.page-content[data-active-tab="tasks"] .stat-card p {
+  color: var(--tasks-accent) !important;
+}
+
+.page-content[data-active-tab="notes"] .stat-card {
+  border-left: 3px solid var(--notes-accent);
+}
+.page-content[data-active-tab="notes"] .stat-card p {
+  color: var(--notes-accent) !important;
+}
+
+.page-content[data-active-tab="focus"] .stat-card {
+  border-left: 3px solid var(--focus-accent);
+}
+.page-content[data-active-tab="focus"] .stat-card p {
+  color: var(--focus-accent) !important;
+}
+
+.page-content[data-active-tab="expenses"] .stat-card {
+  border-left: 3px solid var(--expense-accent);
+}
+.page-content[data-active-tab="expenses"] .stat-card p {
+  color: var(--expense-accent) !important;
+}
+
+/* Tab specific active colors */
+.page-content[data-active-tab="all"] .tab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: var(--accent) !important;
+}
+.page-content[data-active-tab="tasks"] .tab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: var(--tasks-accent) !important;
+}
+.page-content[data-active-tab="notes"] .tab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: var(--notes-accent) !important;
+}
+.page-content[data-active-tab="focus"] .tab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: var(--focus-accent) !important;
+}
+.page-content[data-active-tab="expenses"] .tab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: var(--expense-accent) !important;
+}
+
 /* Forms */
 .form-card {
   background-color: var(--card-bg);
@@ -630,4 +714,119 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 .shimmer-quote-author {
   height: 16px;
   margin-top: 8px;
+}
+
+/* Modern recent activity layout */
+.activity-item {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 14px 20px !important;
+  gap: 12px !important;
+  width: 100% !important;
+  border-bottom: 1px solid var(--card-border) !important;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease !important;
+}
+
+.activity-item:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.activity-item:last-child {
+  border-bottom: none !important;
+}
+
+.activity-item-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.activity-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--hover-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  border: 1px solid var(--card-border);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-item:hover .activity-icon-wrapper {
+  transform: scale(1.08);
+}
+
+.activity-item[data-module="tasks"]:hover .activity-icon-wrapper {
+  border-color: var(--tasks-accent);
+  box-shadow: 0 0 8px var(--tasks-accent-glow);
+}
+.activity-item[data-module="notes"]:hover .activity-icon-wrapper {
+  border-color: var(--notes-accent);
+  box-shadow: 0 0 8px var(--notes-accent-glow);
+}
+.activity-item[data-module="focus"]:hover .activity-icon-wrapper {
+  border-color: var(--focus-accent);
+  box-shadow: 0 0 8px var(--focus-accent-glow);
+}
+.activity-item[data-module="expenses"]:hover .activity-icon-wrapper {
+  border-color: var(--expense-accent);
+  box-shadow: 0 0 8px var(--expense-accent-glow);
+}
+
+.activity-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.activity-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  text-align: left;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.activity-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.activity-meta-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.activity-time {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.activity-badge-wrapper {
+  flex-shrink: 0;
+}
+
+.activity-module {
+  font-size: 0.65rem !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }

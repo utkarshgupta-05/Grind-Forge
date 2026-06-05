@@ -97,19 +97,34 @@
 
         </section>
 
-        <section class="recent-activity-section">
-          <h2>Recent Activity</h2>
-          <div id="recent-activity-list">
-            <!-- Recent activities rendered by JS -->
+        <!-- SPLIT PANEL FOR ACTIVITY & INSIGHTS -->
+        <div class="dashboard-split" style="margin-top: 24px;">
+          
+          <!-- LEFT: Recent Activity -->
+          <div class="split-main">
+            <section class="recent-activity-section form-card" style="padding: 0; overflow: hidden; height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
+                <h3 class="split-section-title" style="margin: 0; color: var(--accent);">Recent Activity</h3>
+              </div>
+              <div id="recent-activity-list" style="border: none; box-shadow: none; background: transparent;">
+                <!-- Recent activities rendered by JS -->
+              </div>
+            </section>
           </div>
-        </section>
 
-        <section class="productivity-insights-section">
-          <h2>Productivity Insights</h2>
-          <div id="dashboard-insights-list">
-            <!-- Insights rendered by JS -->
+          <!-- RIGHT: Productivity Insights -->
+          <div class="split-aside">
+            <section class="productivity-insights-section form-card" style="padding: 0; overflow: hidden; height: 100%;">
+              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
+                <h3 class="split-section-title" style="margin: 0; color: var(--analytics-accent);">Productivity Insights</h3>
+              </div>
+              <div id="dashboard-insights-list" style="border: none; box-shadow: none; background: transparent; padding: 20px;">
+                <!-- Insights rendered by JS -->
+              </div>
+            </section>
           </div>
-        </section>
+
+        </div>
 
       </div>
 

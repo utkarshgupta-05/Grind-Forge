@@ -29,5 +29,11 @@
   - **Row 2**: Recent Expenses section (left, flex: 1.6) and a Quick Notes draft notepad widget (right, flex: 1.0).
 - Connected all widgets to live state and saved databases in [home.js](file:///d:/Web%20Dev/Javascript/productivity_app/productivity-dashboard/js/home.js).
 
+## Phase 4C — Dashboard Page Redesign ✅
+- Applied standard `.stat-card` theme layouts to the 6 dashboard metric cards.
+- Configured dynamic theme styling inside [components.css](file:///d:/Web%20Dev/Javascript/productivity_app/productivity-dashboard/css/components.css) driven by active tab data attributes set by [dashboard.js](file:///d:/Web%20Dev/Javascript/productivity_app/productivity-dashboard/js/dashboard.js) on click. Swaps borders and text value colors to green (Tasks), purple (Notes), blue-slate (Focus), copper (Expenses), or mixed (All) tab-specifically.
+- Positioned **Recent Activity** (left, flex: 1.6) and **Productivity Insights** (right, flex: 1.0) side-by-side using the `.dashboard-split` row wrapper. Removed nested borders and shadows to wrap the elements in polished `.form-card` blocks.
+- Upgraded the **Recent Activity** card design: restructured rows with structured metadata, applied time-first temporal strings (e.g. `Created at 1:40 AM on Jun 6, 2026`), removed inline styles, and implemented custom micro-animation hover glows for all category icons based on modular accents.
+
 ## Future Phases
-- **Phase 4C**: Redesign remaining individual pages (Tasks, Notes, Expenses, Focus, Dashboard) using the new foundation.
+- **Phase 4D**: Redesign remaining individual pages (Tasks, Notes, Expenses, Focus) using the new foundation.

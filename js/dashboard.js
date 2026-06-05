@@ -119,6 +119,11 @@ export function setActiveDashboardTab(tabName) {
         button.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
 
+    const pageContent = tabList.closest('.page-content');
+    if (pageContent) {
+        pageContent.dataset.activeTab = tabName;
+    }
+
     currentDashboardTab = tabName;
     renderDashboardStats(tabName);
     renderRecentActivities(tabName);
@@ -448,6 +453,20 @@ export function getInsightsForTab(tabName = currentDashboardTab) {
     };
 }
 
+function getActivityActionLabel(type) {
+    switch (type) {
+        case 'created':
+            return 'Created at';
+        case 'completed':
+        case 'session_completed':
+            return 'Completed at';
+        case 'updated':
+            return 'Updated at';
+        default:
+            return 'Activity at';
+    }
+}
+
 export function renderRecentActivities(tabName = currentDashboardTab) {
     const activityContainer = document.getElementById('recent-activity-list');
     if (!activityContainer) {
@@ -459,20 +478,46 @@ export function renderRecentActivities(tabName = currentDashboardTab) {
         return;
     }
 
+    const icons = {
+        tasks: '✅',
+        notes: '📌',
+        focus: '🎯',
+        expenses: '💳'
+    };
+
     const activityHTML = activities.map(activity => {
-        const actionText = getActivityActionText(activity.type);
+        const actionLabel = getActivityActionLabel(activity.type);
         const moduleLabel = activity.module
             ? `<span class="activity-module activity-module--${escapeHTML(activity.module)}">${escapeHTML(activity.module)}</span>`
             : '';
-        const dateText = activity.timestamp ? new Date(activity.timestamp).toLocaleString() : 'Unknown Date';
+        
+        let dateText = 'Unknown Date';
+        if (activity.timestamp) {
+            const dateObj = new Date(activity.timestamp);
+            const timeStr = dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            dateText = `${timeStr} on ${dateStr}`;
+        }
+        
+        const icon = icons[activity.module] || '🔔';
+
         return `
-            <div class="activity-item">
-                <div class="activity-item-header">
-                    <strong>${escapeHTML(actionText)}</strong>
+            <div class="activity-item" data-module="${escapeHTML(activity.module)}">
+                <div class="activity-item-main">
+                    <div class="activity-icon-wrapper">
+                        ${icon}
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${escapeHTML(activity.title)}</div>
+                        <div class="activity-meta">
+                            <span class="activity-meta-label">${escapeHTML(actionLabel)}</span>
+                            <span class="activity-time">${escapeHTML(dateText)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-badge-wrapper">
                     ${moduleLabel}
                 </div>
-                <p class="activity-title">${escapeHTML(activity.title)}</p>
-                <p class="activity-date">${dateText}</p>
             </div>
         `;
     }).join('');
