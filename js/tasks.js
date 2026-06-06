@@ -118,6 +118,13 @@ export function handleTaskFormSubmit(event, container) {
         }
         renderTasks(container, currentFilter);
         event.target.reset();
+
+        // Hide modal overlay
+        const modal = document.getElementById("add-task-modal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+        }
     } catch (error) {
         alert(`Error creating task: ${error.message}`);
     }
@@ -173,11 +180,11 @@ export function renderTasks(container, filter = "all") {
     const tasksHTML = tasksToRender
         .map(
             (task) => `
-        <article class="task-card" data-task-id="${escapeHTML(task.taskId)}">
+        <article class="task-card" data-task-id="${escapeHTML(task.taskId)}" data-priority="${escapeHTML(task.priority.toLowerCase())}" data-completed="${task.isComplete}">
                   <div class="task-card-header">
-                    <div class="task-checkbox">
-                      <input type="checkbox" id="task-${escapeHTML(task.taskId)}-status" name="task-${escapeHTML(task.taskId)}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
-                      <label for="task-${escapeHTML(task.taskId)}-status">Mark as Complete</label>
+                    <div class="task-checkbox-wrapper">
+                      <input type="checkbox" class="custom-task-checkbox" id="task-${escapeHTML(task.taskId)}-status" name="task-${escapeHTML(task.taskId)}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
+                      <label for="task-${escapeHTML(task.taskId)}-status" class="visually-hidden">Mark as Complete</label>
                     </div>
                     <h3 class="task-title">${escapeHTML(task.taskTitle)}</h3>
                   </div>
@@ -187,7 +194,7 @@ export function renderTasks(container, filter = "all") {
                   <div class="task-card-footer">
                     <div class="task-meta">
                       <span class="task-due-date"><strong>Due:</strong> ${task.dueDate ? formatDate(task.dueDate) : "No due date"}</span>
-                      <span class="task-priority-badge ${escapeHTML(task.priority.toLowerCase())}"><strong>Priority:</strong> ${escapeHTML(task.priority)}</span>
+                      <span class="task-priority-badge"><strong>Priority:</strong> ${escapeHTML(task.priority)}</span>
                     </div>
                     <div class="task-actions">
                       <button type="button" class="edit-btn" data-action="edit">Edit</button>
@@ -207,6 +214,68 @@ export function initTasksPage() {
     const container = document.getElementById("task-list-container");
     const tabsContainer = document.querySelector(".task-tabs");
     const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    
+    // Add New Task trigger button click handler
+    const openModalBtn = document.getElementById("open-add-task-btn");
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            editingTaskId = null;
+            const formEl = document.getElementById("task-form");
+            if (formEl) {
+                formEl.reset();
+            }
+            const titleText = document.getElementById("modal-title-text");
+            if (titleText) {
+                titleText.textContent = "Create a New Task";
+            }
+            const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Task";
+            }
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+            
+            const modal = document.getElementById("add-task-modal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+                const titleInput = document.getElementById("task-title");
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }
+        });
+    }
+
+    // Modal Close buttons click handlers
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            cancelEditingTask();
+        });
+    }
+
+    const modalOverlay = document.getElementById("add-task-modal");
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                cancelEditingTask();
+            }
+        });
+    }
+
+    // Dismiss modal on Escape key
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            const modal = document.getElementById("add-task-modal");
+            if (modal && modal.style.display === "flex") {
+                cancelEditingTask();
+            }
+        }
+    });
+
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener("click", () => {
             cancelEditingTask();
@@ -281,10 +350,18 @@ export function startEditingTask(taskId) {
         throw new Error("Task not found");
     }
     editingTaskId = taskId;
+    
+    // Set form fields
     document.getElementById("task-title").value = task.taskTitle;
     document.getElementById("task-desc").value = task.taskDescription ? task.taskDescription : "";
     document.getElementById("task-due-date").value = task.dueDate ? task.dueDate.split("T")[0] : "";
     document.getElementById("task-priority").value = task.priority;
+
+    // Set modal text
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Edit Task";
+    }
     const cancelBtn = document.getElementById("cancel-edit-btn");
     if (cancelBtn) {
         cancelBtn.hidden = false;
@@ -292,6 +369,13 @@ export function startEditingTask(taskId) {
     const submitBtn = document.querySelector("button.primary-btn[type='submit']");
     if (submitBtn) {
         submitBtn.textContent = "Update Task";
+    }
+
+    // Show modal overlay
+    const modal = document.getElementById("add-task-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
     }
 }
 
@@ -339,7 +423,14 @@ export function updateTask(taskId, taskData) {
 
 export function cancelEditingTask() {
     editingTaskId = null;
-    document.getElementById("task-form").reset();
+    const form = document.getElementById("task-form");
+    if (form) {
+        form.reset();
+    }
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Create a New Task";
+    }
     const submitBtn = document.querySelector("button.primary-btn[type='submit']");
     if (submitBtn) {
         submitBtn.textContent = "Add Task";
@@ -347,6 +438,13 @@ export function cancelEditingTask() {
     const cancelBtn = document.getElementById("cancel-edit-btn");
     if (cancelBtn) {
         cancelBtn.hidden = true;
+    }
+
+    // Hide modal overlay
+    const modal = document.getElementById("add-task-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
     }
 }
 

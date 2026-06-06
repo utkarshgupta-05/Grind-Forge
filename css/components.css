@@ -415,8 +415,7 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   margin-bottom: 20px;
 }
 
-/* Task cards */
-.task-card,
+/* Shared Card Base styles for expenses/notes */
 .expense-card,
 .note-item {
   background-color: var(--card-bg);
@@ -426,7 +425,6 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   margin-bottom: 12px;
 }
 
-.task-title,
 .expense-title,
 .note-item h3 {
   color: var(--text-primary);
@@ -434,7 +432,6 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   font-weight: 600;
 }
 
-.task-description,
 .expense-category,
 .expense-date,
 .note-date {
@@ -448,24 +445,216 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   font-size: 1.1rem;
 }
 
-.task-meta {
+/* Polished Task Cards with priority color-encoding & layout hierarchy */
+.task-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left border accents for priority color encoding */
+.task-card[data-priority="low"] {
+  border-left: 4px solid var(--tasks-accent);
+}
+
+.task-card[data-priority="medium"] {
+  border-left: 4px solid var(--warning);
+}
+
+.task-card[data-priority="high"] {
+  border-left: 4px solid var(--danger);
+}
+
+/* Hover effects with colored shadow glows matching priority */
+.task-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.task-card[data-priority="low"]:hover {
+  box-shadow: 0 6px 20px var(--tasks-accent-glow);
+}
+
+.task-card[data-priority="medium"]:hover {
+  box-shadow: 0 6px 20px rgba(212, 168, 74, 0.12);
+}
+
+.task-card[data-priority="high"]:hover {
+  box-shadow: 0 6px 20px rgba(201, 107, 107, 0.12);
+}
+
+/* Task Completion Styles */
+.task-card[data-completed="true"] {
+  opacity: 0.6;
+  border-left-color: var(--text-muted);
+}
+
+.task-card[data-completed="true"] .task-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.task-card[data-completed="true"]:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Header layout */
+.task-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.task-title {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* Body layout */
+.task-card-body {
+  padding-left: 36px; /* indent to line up with title text */
+}
+
+.task-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+}
+
+/* Footer layout */
+.task-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  padding-left: 36px;
   flex-wrap: wrap;
   gap: 12px;
-  color: var(--text-muted);
+}
+
+.task-card .task-actions {
+  margin-top: 0 !important;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   font-size: 0.85rem;
-}
-
-.task-priority-badge.low {
   color: var(--text-muted);
 }
 
-.task-priority-badge.medium {
+.task-due-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Priority badge styling - sleek pills */
+.task-priority-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.task-card[data-priority="low"] .task-priority-badge {
+  background-color: var(--tasks-accent-bg);
+  color: var(--tasks-accent);
+}
+
+.task-card[data-priority="medium"] .task-priority-badge {
+  background-color: var(--warning-bg);
   color: var(--warning);
 }
 
-.task-priority-badge.high {
+.task-card[data-priority="high"] .task-priority-badge {
+  background-color: var(--danger-bg);
   color: var(--danger);
+}
+
+/* Custom Checkbox Design */
+.task-checkbox-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.custom-task-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  margin: 0;
+  font: inherit;
+  color: var(--tasks-accent);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--card-border);
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-task-checkbox::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em var(--tasks-accent);
+  background-color: transparent;
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.custom-task-checkbox:checked::before {
+  transform: scale(1);
+}
+
+.custom-task-checkbox:checked {
+  border-color: var(--tasks-accent);
+  background-color: var(--tasks-accent-bg);
+}
+
+.custom-task-checkbox:hover {
+  border-color: var(--tasks-accent);
+  box-shadow: 0 0 6px var(--tasks-accent-glow);
+}
+
+/* Visually Hidden Utility for accessibility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .task-actions,
@@ -829,4 +1018,107 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   letter-spacing: 0.5px !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Modal overlay styling for form popups */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(16, 21, 19, 0.75); /* Dark semi-transparent overlay */
+  backdrop-filter: blur(8px); /* Obsidian Flow premium feel */
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-container {
+  width: 90%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 12px;
+}
+
+.modal-header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--tasks-accent); /* green */
+  margin: 0;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+  padding: 0 4px;
+}
+
+.close-modal-btn:hover {
+  color: var(--danger);
+  transform: scale(1.1);
+}
+
+.add-task-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--tasks-accent);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px var(--tasks-accent-glow);
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.add-task-trigger-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--btn-bg);
+  box-shadow: 0 6px 16px var(--tasks-accent-glow);
+}
+
+.add-task-trigger-btn:active {
+  transform: translateY(0);
+}
+
+.add-task-trigger-btn .btn-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

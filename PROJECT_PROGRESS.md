@@ -35,5 +35,10 @@
 - Positioned **Recent Activity** (left, flex: 1.6) and **Productivity Insights** (right, flex: 1.0) side-by-side using the `.dashboard-split` row wrapper. Removed nested borders and shadows to wrap the elements in polished `.form-card` blocks.
 - Upgraded the **Recent Activity** card design: restructured rows with structured metadata, applied time-first temporal strings (e.g. `Created at 1:40 AM on Jun 6, 2026`), removed inline styles, and implemented custom micro-animation hover glows for all category icons based on modular accents.
 
+## Phase 4D — Individual Page Redesigns (Tasks Page Redesign) ✅
+- Restructured `tasks.html` by hiding the static task form and adding a `+ Add New Task` trigger button just below the stats section.
+- Designed a layered modal overlay dialog (`.modal-overlay`) with glassmorphism blur backdrop styling, custom slide-in transitions, backdrop-click dismissals, and keyboard Escape key actions.
+- Redesigned individual task cards with left priority color indicator borders, matching soft shadow glows on hover, custom circular checkbox inputs, pill priority badges, and reduced opacity with line-through headers for checked/completed task states.
+
 ## Future Phases
-- **Phase 4D**: Redesign remaining individual pages (Tasks, Notes, Expenses, Focus) using the new foundation.
+- **Phase 4E**: Redesign remaining individual pages (Notes, Expenses, Focus) using the new foundation.
