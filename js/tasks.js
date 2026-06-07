@@ -1,6 +1,5 @@
 import { AppState } from "./state.js";
 import {
-    generateId,
     validateRequired,
     formatDate,
     getDaysDiff,
@@ -143,8 +142,9 @@ export function renderTasks(container, filter = "all") {
     }
 
     let tasksToRender = AppState.tasks;
+    tasksToRender.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     if (filter === "completed") {
-        tasksToRender = AppState.tasks.filter((task) => task.isComplete);
+        tasksToRender = tasksToRender.filter((task) => task.isComplete);
         if (tasksToRender.length === 0) {
             container.innerHTML =
                 "<div class='empty-state'><h3>No Completed Tasks</h3><p>Complete some tasks to see them here.</p></div>";
@@ -152,7 +152,7 @@ export function renderTasks(container, filter = "all") {
             return;
         }
     } else if (filter === "overdue") {
-        tasksToRender = AppState.tasks.filter(
+        tasksToRender = tasksToRender.filter(
             (task) =>
                 task.dueDate &&
                 getDaysDiff(task.dueDate, new Date()) < 0 &&
@@ -165,7 +165,7 @@ export function renderTasks(container, filter = "all") {
             return;
         }
     } else if (filter === "pending") {
-        tasksToRender = AppState.tasks.filter(
+        tasksToRender = tasksToRender.filter(
             (task) =>
                 !task.isComplete &&
                 (!task.dueDate || getDaysDiff(task.dueDate, new Date()) >= 0),

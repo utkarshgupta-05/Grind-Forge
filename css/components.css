@@ -415,9 +415,8 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   margin-bottom: 20px;
 }
 
-/* Shared Card Base styles for expenses/notes */
-.expense-card,
-.note-item {
+/* Shared Card Base styles for expenses */
+.expense-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -425,8 +424,7 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   margin-bottom: 12px;
 }
 
-.expense-title,
-.note-item h3 {
+.expense-title {
   color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 600;
@@ -1121,4 +1119,371 @@ body[data-page="expenses.html"] .stat-card .stat-value {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Polished Note Cards with visual layout overrides */
+.note-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid var(--notes-accent); /* purple left border accent */
+}
+
+/* Hover effects with colored shadow glows matching notes accent */
+.note-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px var(--notes-accent-glow);
+}
+
+/* Active state — currently selected note */
+.note-card-active {
+  border-color: var(--notes-accent);
+  box-shadow: 0 0 0 1px var(--notes-accent), 0 4px 16px var(--notes-accent-glow);
+  background-color: var(--hover-bg);
+}
+
+.note-card-active:hover {
+  transform: none;
+  border-color: var(--notes-accent);
+  box-shadow: 0 0 0 1px var(--notes-accent), 0 4px 16px var(--notes-accent-glow);
+}
+
+.note-title {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.note-card-body {
+  padding-left: 0;
+}
+
+.note-content-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+  word-break: break-word;
+}
+
+/* Footer layout */
+.note-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.note-card .note-actions {
+  margin-top: 0 !important;
+}
+
+.note-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.note-date-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Add New Note Trigger Button style */
+.add-note-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--notes-accent);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px var(--notes-accent-glow);
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.add-note-trigger-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--notes-accent);
+  box-shadow: 0 6px 16px var(--notes-accent-glow);
+  filter: brightness(1.1);
+}
+
+.add-note-trigger-btn:active {
+  transform: translateY(0);
+}
+
+.add-note-trigger-btn .btn-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Note card cursor — clickable to open detail panel */
+.note-card {
+  cursor: pointer;
+}
+
+/* Notes page modal header uses notes accent */
+body[data-page="notes.html"] .modal-header h2 {
+  color: var(--notes-accent);
+}
+
+/* ===== Notes Split Panel Layout ===== */
+.notes-split-container {
+  display: flex;
+  gap: 0;
+  min-height: 300px;
+  position: relative;
+}
+
+/* Notes list — full width by default, shrinks when detail open */
+.notes-split-container .notes-list-section {
+  flex: 1;
+  min-width: 0;
+  transition: flex 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Detail panel — hidden by default */
+.note-detail-panel {
+  flex: 0;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: flex 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 0;
+}
+
+/* When detail is open — split view */
+.notes-split-container.detail-open {
+  gap: 20px;
+}
+
+.notes-split-container.detail-open .notes-list-section {
+  flex: 0.85;
+}
+
+.notes-split-container.detail-open .note-detail-panel {
+  flex: 1.15;
+  width: auto;
+  opacity: 1;
+  overflow: visible;
+  margin-left: 0;
+}
+
+/* Detail panel header */
+.detail-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.drawer-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drawer-back-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--notes-accent);
+}
+
+.drawer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.drawer-edit-btn,
+.drawer-delete-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.drawer-edit-btn:hover {
+  background-color: var(--nav-active-bg);
+  color: var(--notes-accent);
+  border-color: var(--notes-accent);
+}
+
+.drawer-delete-btn:hover {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Detail panel body */
+.detail-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+}
+
+.drawer-note-title {
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  border-left: 4px solid var(--notes-accent);
+  padding-left: 14px;
+}
+
+.drawer-note-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.drawer-meta-item {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.drawer-meta-item strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.drawer-note-content {
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.75;
+  word-break: break-word;
+}
+
+/* Scrollbar styling for detail panel */
+.detail-panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail-panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.detail-panel-body::-webkit-scrollbar-thumb {
+  background-color: var(--card-border);
+  border-radius: 3px;
+}
+
+.detail-panel-body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 768px) {
+  .notes-split-container {
+    flex-direction: column;
+  }
+  .notes-split-container.detail-open .notes-list-section {
+    flex: unset;
+  }
+  .notes-split-container.detail-open .note-detail-panel {
+    flex: unset;
+    width: 100%;
+  }
+}
+
+/* Notes drawer editing toolbar and editable area */
+.drawer-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--card-bg);
+  margin-bottom: 8px;
+}
+.drawer-toolbar .format-btns {
+  display: flex;
+  gap: 8px;
+}
+.format-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.format-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+.drawer-note-title[contenteditable],
+.drawer-note-content[contenteditable] {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  min-height: 36px;
+}
+.drawer-note-title[contenteditable]:focus,
+.drawer-note-content[contenteditable]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--card-border);
+}
+.drawer-toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+.drawer-toolbar-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.drawer-toolbar-actions button:disabled:hover {
+  filter: none;
+  background-color: var(--card-bg);
 }

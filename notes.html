@@ -43,7 +43,8 @@
           </div>
         </div>
         <div class="header-actions">
-          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="false">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode"
+            aria-pressed="false">
             <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
             <span class="theme-toggle-label">Light</span>
           </button>
@@ -79,31 +80,76 @@
         </section>
 
 
-        <section class="notes-form-section">
+        <div class="add-note-trigger-container" style="margin-bottom: 24px;">
+          <button type="button" id="open-add-note-btn" class="primary-btn add-note-trigger-btn">
+            <span class="btn-icon">+</span> Add New Note
+          </button>
+        </div>
 
-          <h2>Create Note</h2>
+        <!-- Modal Overlay Backdrop -->
+        <div id="add-note-modal" class="modal-overlay" aria-hidden="true" style="display: none;">
+          <div class="modal-container">
+            <section class="notes-form-section form-card">
+              <div class="modal-header">
+                <h2 id="modal-title-text">Create Note</h2>
+                <button type="button" class="close-modal-btn" id="close-modal-btn"
+                  aria-label="Close modal">&times;</button>
+              </div>
+              <form id="note-form">
+                <div class="form-group">
+                  <label for="note-title">Title</label>
+                  <input id="note-title" type="text" placeholder="Note title" required />
+                </div>
+                <div class="form-group">
+                  <label for="note-content">Content</label>
+                  <textarea id="note-content" placeholder="Write your note..." required rows="5"></textarea>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn">Save Note</button>
+                  <button type="button" id="cancel-edit-btn" class="secondary-btn" hidden="true">Cancel Edit</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </div>
 
-          <form id="note-form">
+        <div class="notes-split-container" id="notes-split-container">
+          <section class="notes-list-section" id="notes-list-panel">
+            <h2>Your Notes</h2>
+            <div id="notes-list-container"></div>
+          </section>
 
-            <input id="note-title" type="text" placeholder="Note title" required />
-
-            <textarea id="note-content" placeholder="Write your note..." required></textarea>
-            <div class="form-actions">
-              <button type="submit" class="primary-btn">Save Note</button>
-              <button type="button" id="cancel-edit-btn" class="secondary-btn" hidden="true">Cancel Edit</button>
+          <!-- Inline Note Detail Panel (right side) -->
+          <section class="note-detail-panel" id="note-detail-panel" aria-hidden="true">
+            <div class="detail-panel-header">
+              <button type="button" class="drawer-back-btn" id="drawer-close-btn" aria-label="Close panel">
+                <span aria-hidden="true">←</span> Back
+              </button>
+              <div class="drawer-actions">
+                <button type="button" class="delete-note-btn drawer-delete-btn" id="drawer-delete-btn">Delete</button>
+              </div>
             </div>
 
-          </form>
+            <!-- Inline editing toolbar for the drawer -->
+            <div class="drawer-toolbar" id="drawer-toolbar" style="display:none;">
+              <div class="format-btns">
+                <button type="button" class="format-btn" data-cmd="bold" aria-label="Bold"><strong>B</strong></button>
+                <button type="button" class="format-btn" data-cmd="italic" aria-label="Italic"><em>I</em></button>
+                <button type="button" class="format-btn" data-cmd="underline" aria-label="Underline"><u>U</u></button>
+              </div>
+              <div class="drawer-toolbar-actions">
+                <button type="button" id="drawer-save-btn" class="primary-btn">Save</button>
+                <button type="button" id="drawer-cancel-edit-btn" class="secondary-btn">Cancel</button>
+              </div>
+            </div>
 
-        </section>
-
-        <section class="notes-list-section">
-
-          <h2>Your Notes</h2>
-
-          <div id="notes-list-container"></div>
-
-        </section>
+            <div class="detail-panel-body">
+              <div id="drawer-note-title" class="drawer-note-title" contenteditable="true" role="textbox" aria-label="Note title"></div>
+              <div class="drawer-note-meta" id="drawer-note-meta"></div>
+              <div class="drawer-note-content" id="drawer-note-content" contenteditable="true"></div>
+            </div>
+          </section>
+        </div>
 
       </div>
 
