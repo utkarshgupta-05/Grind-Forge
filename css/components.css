@@ -1122,7 +1122,8 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 }
 
 /* Polished Note Cards with visual layout overrides */
-.note-card {
+.note-card,
+.focus-session-item {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -1134,14 +1135,18 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;
-  border-left: 4px solid var(--notes-accent); /* purple left border accent */
+  border-left: 4px solid var(--focus-accent); /* purple left border accent */
 }
 
 /* Hover effects with colored shadow glows matching notes accent */
-.note-card:hover {
+.note-card:hover,
+.focus-session-item:hover {
   transform: translateY(-2px);
   border-color: var(--accent);
   box-shadow: 0 6px 20px var(--notes-accent-glow);
+}
+.focus-session-item:hover{
+  box-shadow: 0 6px 20px var(--focus-accent-glow);
 }
 
 /* Active state — currently selected note */
@@ -1157,7 +1162,8 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   box-shadow: 0 0 0 1px var(--notes-accent), 0 4px 16px var(--notes-accent-glow);
 }
 
-.note-title {
+.note-title,
+.focus-title {
   color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 600;
@@ -1166,11 +1172,13 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   text-align: left;
 }
 
-.note-card-body {
+.note-card-body,
+.focus-card-body {
   padding-left: 0;
 }
 
-.note-content-text {
+.note-content-text,
+.focus-content-text {
   color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
@@ -1180,7 +1188,8 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 }
 
 /* Footer layout */
-.note-card-footer {
+.note-card-footer,
+.focus-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1189,11 +1198,13 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   gap: 12px;
 }
 
-.note-card .note-actions {
+.note-card .note-actions,
+.focus-session-item {
   margin-top: 0 !important;
 }
 
-.note-meta {
+.note-meta,
+.focus-meta {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1201,7 +1212,8 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   color: var(--text-muted);
 }
 
-.note-date-text {
+.note-date-text,
+.focus-date-text {
   display: inline-flex;
   align-items: center;
   gap: 6px;

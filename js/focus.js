@@ -33,13 +33,13 @@ export function updateTimerDisplay() {
     }
     const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
     const seconds = (timeRemaining % 60).toString().padStart(2, '0');
-    if(timeRemaining > 0) {
+    if (timeRemaining > 0) {
         timerDisplay.innerHTML = `<p>${minutes}:${seconds}</p>`;
     }
     else {
         timerDisplay.innerHTML = "<p>00:00</p><p>Session Complete!</p>";
     }
-    if(timeRemaining <= 5 * 60) {
+    if (timeRemaining <= 5 * 60) {
         timerDisplay.classList.add('warning');
     }
     else {
@@ -101,7 +101,7 @@ export function saveCompletedSession() {
     const sessionNameInput = document.getElementById('session-name');
     const sessionName = sessionNameInput ? sessionNameInput.value.trim() : "Unnamed Session";
     const completedSession = {
-        sessionId:crypto.randomUUID(),
+        sessionId: crypto.randomUUID(),
         sessionName,
         durationMinutes: SESSION_DURATION_MINUTES,
         startedAt: sessionStartedAt,
@@ -127,11 +127,27 @@ export function renderFocusHistory() {
         return;
     }
     const historyHTML = sessions.map(session => `
-        <div class="focus-session-item">
-            <p><strong>${escapeHTML(session.sessionName)}</strong></p>
-            <p>Duration: ${escapeHTML(String(session.durationMinutes))} minutes</p>
-            <p>Completed on: ${new Date(session.completedAt).toLocaleString()}</p>
+        
+        <div class="focus-session-item" data-focus-id="${escapeHTML(session.sessionId)}">
+            <div class="focus-card-header">
+                <h3 class="focus-title">${escapeHTML(session.sessionName)}</h3>
+            </div>
+            <div class="focus-card-body">
+                <p class="focus-content-text">Duration : ${escapeHTML(String(session.durationMinutes))}</p>
+            </div>
+            <div class="focus-card-footer">
+                <div class="focus-meta">
+                    <span class="focus-date-text">Started on : ${new Date(session.startedAt).toLocaleString([],{ month: 'short', day: 'numeric', year: 'numeric' })} at ${new Date(session.startedAt).toLocaleString([],{ hour: 'numeric', minute: '2-digit' })}</span>
+                    <span class="focus-date-text">Completed on : ${new Date(session.completedAt).toLocaleString([],{ month: 'short', day: 'numeric', year: 'numeric' })} at ${new Date(session.completedAt).toLocaleString([],{ hour: 'numeric', minute: '2-digit' })}</span>
+                </div>
+            </div>
         </div>
     `).join('');
     historyContainer.innerHTML = historyHTML;
 }
+
+/*<div class="focus-session-item">
+            <p><strong>${escapeHTML(session.sessionName)}</strong></p>
+            <p>Duration: ${escapeHTML(String(session.durationMinutes))} minutes</p>
+            <p>Completed on: ${new Date(session.completedAt).toLocaleString()}</p>
+        </div>*/
