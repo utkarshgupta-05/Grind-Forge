@@ -415,33 +415,212 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   margin-bottom: 20px;
 }
 
-/* Shared Card Base styles for expenses */
-.expense-card {
-  background-color: var(--card-bg);
+/* Polished Expense Cards with layout hierarchy & horizontal layout */
+.expense-list-section {
+  background-color: var(--main-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 20px;
 }
 
-.expense-title {
+.expense-list-section h2 {
+  grid-column: 1;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 
-.expense-category,
-.expense-date,
-.note-date {
+.expense-filter-row {
+  grid-column: 2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
-.expense-amount {
-  color: var(--expense-accent);
-  font-weight: 700;
-  font-size: 1.1rem;
+.expense-filter-row select {
+  cursor: pointer;
+  background-color: var(--btn-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--btn-text);
+  padding: 8px 16px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
 }
+
+.expense-filter-row select:focus {
+  border-color: var(--expense-accent);
+}
+
+.expense-list-header {
+  grid-column: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 24px 12px 88px; /* 24px padding + 44px icon + 20px gap */
+  color: var(--text-muted);
+  background-color: var(--main-bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 8px;
+  margin-top: 8px;
+}
+
+.expense-list-header .col-desc {
+  flex: 4;
+  padding-right: 32px;
+}
+
+.expense-list-header .col-date {
+  flex: 1.2;
+}
+
+.expense-list-header .col-cat {
+  width: 100px;
+  text-align: center;
+}
+
+.expense-list-header .col-amt {
+  flex: 1;
+  text-align: right;
+  padding-right: 140px; /* Offset to match actions button column */
+}
+
+#expense-list-container {
+  grid-column: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.expense-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--expense-accent);
+  border-radius: 12px;
+  padding: 16px 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+}
+
+.expense-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--expense-accent);
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 6px 20px var(--expense-accent-glow);
+}
+
+/* Category-based or generic transaction icon */
+.expense-card::before {
+  content: "💳";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--expense-accent-bg);
+  color: var(--expense-accent);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  order: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.expense-title {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 4;
+  order: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 32px;
+}
+
+.expense-date {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  flex: 1.2;
+  order: 3;
+}
+
+.expense-category {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  padding: 4px 12px;
+  border-radius: 100px;
+  margin: 0;
+  text-align: center;
+  min-width: 100px;
+  order: 4;
+}
+
+.expense-amount {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 0;
+  text-align: right;
+  flex: 1;
+  order: 5;
+}
+
+.expense-actions {
+  display: flex;
+  gap: 8px;
+  order: 6;
+  margin-left: 12px;
+}
+
+.expense-actions button {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.expense-actions .edit-btn:hover {
+  background-color: var(--expense-accent-bg);
+  border-color: var(--expense-accent);
+  color: var(--expense-accent);
+}
+
+.expense-actions .delete-btn:hover {
+  background-color: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 
 /* Polished Task Cards with priority color-encoding & layout hierarchy */
 .task-card {

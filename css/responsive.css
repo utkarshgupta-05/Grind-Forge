@@ -234,3 +234,55 @@
         font-size: 0.85rem;
     }
 }
+
+@media (max-width: 768px) {
+    .expense-list-header {
+        display: none;
+    }
+    .expense-list-section {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+    .expense-list-section h2 {
+        grid-column: 1;
+    }
+    .expense-filter-row {
+        grid-column: 1;
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    #expense-list-container {
+        grid-column: 1;
+    }
+    .expense-card {
+        flex-wrap: wrap;
+        padding: 16px;
+        gap: 12px;
+    }
+    .expense-title {
+        flex-grow: 1;
+        flex-basis: calc(100% - 120px);
+    }
+    .expense-amount {
+        flex-basis: 100px;
+        text-align: right;
+    }
+    .expense-date {
+        flex-basis: 55%;
+        color: var(--text-muted);
+    }
+    .expense-category {
+        flex-basis: auto;
+        min-width: 0;
+    }
+    .expense-actions {
+        flex-basis: 100%;
+        justify-content: flex-end;
+        margin-left: 0;
+        margin-top: 8px;
+        border-top: 1px solid var(--card-border);
+        padding-top: 8px;
+    }
+}
+

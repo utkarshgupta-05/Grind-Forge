@@ -40,5 +40,13 @@
 - **Notes Page**: Restructured `notes.html` by hiding the compose form and adding a purple-accented `+ Add New Note` trigger button. Configured an overlay modal compose panel with slide transitions, Escape-key dismissals, and background-click close hooks. Redesigned note cards with left purple accents, hover shadow glows, clean metadata, and timestamp formatting.
   - Updated: Converted the detail drawer into an inline editor (removed the separate "Edit" button). Added a small formatting toolbar (Bold / Italic / Underline) and Save/Cancel controls so notes can be edited directly in the drawer.
 
+## Phase 4E — Expenses Page Redesign ✅
+- Restructured `expenses.html` by changing the header text to "Recent Transactions" and adding dynamic column headers (`Description`, `Date`, `Category`, `Amount`).
+- Styled `.expense-list-header` in `css/components.css` to align perfectly with card list content using offset padding and flex distribution.
+- Converted `.expense-card` into a horizontal row structure with a custom transaction icon, left accent border, pill-shaped category badges, bold amounts, and right-aligned action buttons.
+- Added interactive hover effects including a translateY lift and a custom copper shadow glow (`var(--expense-accent-glow)`).
+- Implemented mobile media queries in `css/responsive.css` to hide the column headers and wrap/stack the row components cleanly on narrower devices.
+
 ## Future Phases
-- **Phase 4E**: Redesign remaining individual pages (Expenses, Focus) using the new foundation.
+- **Phase 4F**: Redesign remaining individual pages (Focus, Settings) using the new foundation.
+
