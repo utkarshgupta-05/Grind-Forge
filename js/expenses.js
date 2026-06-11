@@ -4,11 +4,124 @@ import { validateRequired, formatCurrency, formatDate, escapeHTML } from "./util
 let currentFilter = 'all';
 let editingExpenseId = null;
 
+export function cancelEditingExpense() {
+    editingExpenseId = null;
+    const form = document.getElementById("expense-form");
+    if (form) {
+        form.reset();
+    }
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Add a New Expense";
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Add Expense";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = true;
+    }
+
+    // Hide modal overlay
+    const modal = document.getElementById("add-expense-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
+
 export function initExpensesPage() {
     const form = document.getElementById("expense-form");
     const expenseListContainer = document.getElementById("expense-list-container");
     const filterSelect = document.getElementById("expense-category-filter");
     const breakdownContainer = document.getElementById("category-breakdown-container");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+
+    // Add New Task trigger button click handler
+    const openModalBtn = document.getElementById("open-add-expense-btn");
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            editingExpenseId = null;
+            const formEl = document.getElementById("expense-form");
+            if (formEl) {
+                formEl.reset();
+            }
+            const titleText = document.getElementById("modal-title-text");
+            if (titleText) {
+                titleText.textContent = "Add a New Expense";
+            }
+            const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Expense";
+            }
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+
+            const modal = document.getElementById("add-expense-modal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+                const titleInput = document.getElementById("expense-title");
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }
+        });
+    }
+
+    // Modal Close buttons click handlers
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            cancelEditingExpense();
+        });
+    }
+
+    const modalOverlay = document.getElementById("add-expense-modal");
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                cancelEditingExpense();
+            }
+        });
+    }
+
+    // Dismiss modal on Escape key
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            const modal = document.getElementById("add-expense-modal");
+            if (modal && modal.style.display === "flex") {
+                cancelEditingExpense();
+            }
+        }
+    });
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", () => {
+            cancelEditingExpense();
+        });
+    }
+    // if (tabsContainer) {
+    //     tabsContainer.addEventListener("click", (event) => {
+    //         handleTaskFilterClick(event, container);
+    //     });
+
+    //     if (!form || !container) return;
+
+    //     form.addEventListener("submit", (event) => {
+    //         handleTaskFormSubmit(event, container);
+    //     });
+
+    //     container.addEventListener("click", (event) => {
+    //         handleTaskListClick(event, container);
+    //     });
+
+    //     renderTasks(container, currentFilter);
+    // }
+
     if (!form || !expenseListContainer || !filterSelect) {
         return;
     }
@@ -43,6 +156,13 @@ export function handleFormSubmit(container) {
         }
         document.getElementById("expense-form").reset();
         renderExpenseList(container, currentFilter);
+
+        // Hide modal overlay
+        const modal = document.getElementById("add-expense-modal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+        }
     } catch (error) {
         alert(`Error handling form submit: ${error.message}`);
     }
@@ -81,9 +201,24 @@ export function startEditingExpense(expenseId) {
     document.getElementById("expense-amount").value = expense.expenseAmount;
     document.getElementById("expense-category").value = expense.expenseCategory;
     document.getElementById("expense-date").value = expense.expenseDate;
-    const submitBtn = document.querySelector("#expense-form button.primary-btn[type='submit']");
+    // Set modal text
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Edit Expense";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = false;
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
     if (submitBtn) {
         submitBtn.textContent = "Update Expense";
+    }
+    // Show modal overlay
+    const modal = document.getElementById("add-expense-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
     }
 }
 
@@ -219,7 +354,13 @@ export function renderExpenseList(container, filter = "all") {
     if (!container || !(container instanceof HTMLElement)) {
         throw new Error("Valid container element is required");
     }
-    let expenses = [...AppState.expenses].sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
+    let expenses = [...AppState.expenses].sort((a, b) => {
+        const dateDiff = new Date(b.expenseDate) - new Date(a.expenseDate);
+        // Primary sort: by expense date descending
+        if (dateDiff !== 0) return dateDiff;
+        // Tiebreaker: if same date, sort by creation time descending (newest added = first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
     if (filter !== "all") {
         expenses = expenses.filter((expense) => expense.expenseCategory === filter);
     }
