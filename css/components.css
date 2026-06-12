@@ -924,6 +924,11 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 }
 
 /* Focus page */
+.focus-buttons{
+  display: flex;
+  gap: 8px;
+}
+
 .focus-timer-section {
   text-align: center;
   padding: 32px;
@@ -941,6 +946,7 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 
 .focus-controls {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;

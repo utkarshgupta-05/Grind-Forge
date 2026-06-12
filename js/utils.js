@@ -143,19 +143,31 @@ export function startLiveTimer() {
     setInterval(updateTimer, 1000);
 }
 
-export function updateHeaderAvatar() {
+export function updateHeaderProfile() {
     const avatarEls = document.querySelectorAll('.profile-avatar');
-    if (avatarEls.length === 0) return;
+    const welcomeEls = document.querySelectorAll('.welcome-text');
 
     const savedAvatar = storageGet("settings_avatar_dataurl");
     const profile = AppState.settings?.profile || {};
+    const userName = profile.name || "User";
     
-    avatarEls.forEach(avatarEl => {
-        if (savedAvatar) {
-            avatarEl.innerHTML = `<img src="${savedAvatar}" alt="Avatar" />`;
-        } else {
-            const initials = (profile.name || "U").charAt(0).toUpperCase();
-            avatarEl.textContent = initials;
-        }
-    });
+    if (avatarEls.length > 0) {
+        avatarEls.forEach(avatarEl => {
+            if (savedAvatar) {
+                avatarEl.innerHTML = `<img src="${savedAvatar}" alt="Avatar" />`;
+            } else {
+                const initials = userName.charAt(0).toUpperCase();
+                avatarEl.textContent = initials;
+            }
+        });
+    }
+
+    if (welcomeEls.length > 0) {
+        welcomeEls.forEach(welcomeEl => {
+            // Only update if it originally contained "Welcome" to avoid overwriting specific page titles if they differ
+            if (welcomeEl.textContent.includes("Welcome") || welcomeEl.textContent === "Settings") {
+                welcomeEl.textContent = `Welcome, ${escapeHTML(userName)}!`;
+            }
+        });
+    }
 }
