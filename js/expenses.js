@@ -104,24 +104,6 @@ export function initExpensesPage() {
             cancelEditingExpense();
         });
     }
-    // if (tabsContainer) {
-    //     tabsContainer.addEventListener("click", (event) => {
-    //         handleTaskFilterClick(event, container);
-    //     });
-
-    //     if (!form || !container) return;
-
-    //     form.addEventListener("submit", (event) => {
-    //         handleTaskFormSubmit(event, container);
-    //     });
-
-    //     container.addEventListener("click", (event) => {
-    //         handleTaskListClick(event, container);
-    //     });
-
-    //     renderTasks(container, currentFilter);
-    // }
-
     if (!form || !expenseListContainer || !filterSelect) {
         return;
     }

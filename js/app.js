@@ -23,7 +23,7 @@ document.body.dataset.page = currentPage;
 
 if (currentPage === "index.html") {
     initHomePage();
-} 
+}
 if (currentPage === "tasks.html") {
     initTasksPage();
 }

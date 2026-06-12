@@ -99,26 +99,25 @@ export function renderRecentExpenses() {
     const expenses = (AppState.expenses || []);
     const sortedExpenses = [...expenses].sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
 
-    // Calculate total spent in current week (last 7 days)
+    // Calculate total spent in current month
     const today = new Date();
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(today.getDate() - 7);
-
-    const weeklySpent = expenses.reduce((acc, curr) => {
-        const expDate = new Date(curr.expenseDate);
-        if (expDate >= oneWeekAgo && expDate <= today) {
-            return acc + curr.expenseAmount;
+    const firstDateOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    const monthlySpent = expenses.reduce((acc, curr) => {
+        const expenseDate = new Date(curr.expenseDate);
+        if (expenseDate >= firstDateOfMonth && expenseDate <= today) {
+            return acc + parseFloat(curr.expenseAmount);
         }
         return acc;
     }, 0);
 
     if (totalEl) {
-        totalEl.textContent = formatCurrency(weeklySpent);
+        totalEl.textContent = formatCurrency(monthlySpent);
     }
 
     if (progressFillEl) {
         // Budget limit is 500
-        const percentage = Math.min(100, (weeklySpent / 500) * 100);
+        const percentage = Math.min(100, (monthlySpent / 500) * 100);
         progressFillEl.style.width = `${percentage}%`;
     }
 

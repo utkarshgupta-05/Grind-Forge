@@ -43,7 +43,8 @@
           </div>
         </div>
         <div class="header-actions">
-          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="false">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode"
+            aria-pressed="false">
             <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
             <span class="theme-toggle-label">Light</span>
           </button>
@@ -64,9 +65,15 @@
 
           <h1>Focus Session</h1>
 
-          
-          <div id="focus-timer-display">
-            <!-- Time will be rendered through Js -->
+
+          <div id="focus-timer-container" class="timer-container">
+            <svg class="progress-ring" width="250" height="250">
+              <circle class="progress-ring-bg" cx="125" cy="125" r="115"></circle>
+              <circle id="progress-ring-circle" class="progress-ring-circle" cx="125" cy="125" r="115"></circle>
+            </svg>
+            <div id="focus-timer-display" class="timer-display">
+              <!-- Time will be rendered through Js -->
+            </div>
           </div>
 
           <div class="focus-controls">

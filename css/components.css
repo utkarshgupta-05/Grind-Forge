@@ -1678,3 +1678,43 @@ body[data-page="notes.html"] .modal-header h2 {
   filter: none;
   background-color: var(--card-bg);
 }
+
+/* Focus Timer Circular Progress Bar */
+.timer-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  margin: 0 auto 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg); /* Start from top */
+}
+
+.progress-ring-bg {
+  fill: transparent;
+  stroke: var(--nav-active-bg);
+  stroke-width: 20;
+}
+
+.progress-ring-circle {
+  fill: transparent;
+  stroke: var(--focus-accent);
+  stroke-width: 20;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s linear;
+}
+
+.timer-display {
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
