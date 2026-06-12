@@ -9,7 +9,7 @@ import { initFocusPage } from "./focus.js";
 import { initNotesPage } from "./notes.js";
 import { initExpensesPage } from "./expenses.js";
 import { initSettingsPage } from "./settings.js";
-import { startLiveTimer } from "./utils.js";
+import { startLiveTimer, updateHeaderAvatar } from "./utils.js";
 
 
 AppState.load();
@@ -18,6 +18,7 @@ initTheme();
 bindThemeToggle();
 highlightActiveLink();
 startLiveTimer();
+updateHeaderAvatar();
 
 const currentPage = getCurrentPage();
 document.body.dataset.page = currentPage;

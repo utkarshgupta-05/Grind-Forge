@@ -1,5 +1,8 @@
 // utils.js — helpers: date formatting, id generation, XSS escaping
 
+import { AppState } from "./state.js";
+import { storageGet } from "./storage.js";
+
 /**
  * Escape user-supplied strings before inserting into innerHTML.
  * Must be used everywhere user content is rendered into HTML templates.
@@ -138,4 +141,21 @@ export function startLiveTimer() {
     
     // Update every second
     setInterval(updateTimer, 1000);
+}
+
+export function updateHeaderAvatar() {
+    const avatarEls = document.querySelectorAll('.profile-avatar');
+    if (avatarEls.length === 0) return;
+
+    const savedAvatar = storageGet("settings_avatar_dataurl");
+    const profile = AppState.settings?.profile || {};
+    
+    avatarEls.forEach(avatarEl => {
+        if (savedAvatar) {
+            avatarEl.innerHTML = `<img src="${savedAvatar}" alt="Avatar" />`;
+        } else {
+            const initials = (profile.name || "U").charAt(0).toUpperCase();
+            avatarEl.textContent = initials;
+        }
+    });
 }

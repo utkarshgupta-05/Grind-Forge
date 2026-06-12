@@ -2,6 +2,7 @@
 import { AppState } from "./state.js";
 import { storageGet, storageSet } from "./storage.js";
 import { applyTheme, getStoredTheme } from "./theme.js";
+import { updateHeaderAvatar } from "./utils.js";
 
 // ─────────────────────────────────────────
 //  HELPERS
@@ -70,6 +71,7 @@ function initProfileSection() {
                 if (avatarEl) {
                     avatarEl.innerHTML = `<img src="${dataUrl}" alt="Avatar" />`;
                 }
+                updateHeaderAvatar();
             };
             reader.readAsDataURL(file);
         });
@@ -87,6 +89,7 @@ function initProfileSection() {
             if (!avatarImg && avatarEl) {
                 avatarEl.textContent = (nameInput.value.trim() || "U").charAt(0).toUpperCase();
             }
+            updateHeaderAvatar();
             showFeedback(feedback, "Profile saved!");
         });
     }

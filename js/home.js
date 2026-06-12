@@ -46,14 +46,23 @@ export function renderUrgentTasks() {
     if (!container) return;
 
     const today = new Date();
-    // Show high/medium priority tasks that are incomplete, sorted by due date
+    // Show tasks that are incomplete AND (priority is high OR due date is today)
     const urgentTasks = (AppState.tasks || [])
-        .filter(task => !task.isComplete && (task.priority === 'high' || task.priority === 'medium'))
+        .filter(task => {
+            if (task.isComplete) return false;
+            const daysLeft = task.dueDate ? getDaysDiff(task.dueDate, today) : null;
+            const isDueToday = daysLeft === 0;
+            return task.priority === 'high' || isDueToday;
+        })
         .sort((a, b) => {
             // Sort: overdue first, then by due date, then no-date tasks last
             const aDiff = a.dueDate ? getDaysDiff(a.dueDate, today) : 999;
             const bDiff = b.dueDate ? getDaysDiff(b.dueDate, today) : 999;
-            return aDiff - bDiff;
+            if (aDiff !== bDiff) return aDiff - bDiff;
+            // if same date, high priority first
+            if (a.priority === 'high' && b.priority !== 'high') return -1;
+            if (a.priority !== 'high' && b.priority === 'high') return 1;
+            return 0;
         })
         .slice(0, 5); // Show max 5
 
@@ -61,7 +70,7 @@ export function renderUrgentTasks() {
         container.innerHTML = `
             <div class="urgent-task-cards">
                 <span></span>
-                <div style="color: var(--text-muted); font-style: italic;">No urgent tasks — you're all caught up!</div>
+                <div style="color: var(--text-muted); font-style: italic;">No priority tasks — you're all caught up!</div>
                 <div></div>
                 <div></div>
             </div>`;
@@ -80,7 +89,7 @@ export function renderUrgentTasks() {
         const priorityClass = task.priority === 'high' ? 'text-danger' : 'text-warning';
         return `
             <div class="urgent-task-cards">
-                <input type="checkbox" disabled title="Go to Tasks to complete">
+                <input type="checkbox" data-task-id="${escapeHTML(task.taskId)}" class="home-urgent-task-checkbox" title="Mark as complete">
                 <div>${escapeHTML(task.taskTitle)}</div>
                 <div class="${priorityClass}">${escapeHTML(task.priority.charAt(0).toUpperCase() + task.priority.slice(1))}</div>
                 <div>${escapeHTML(dueLabel)}</div>
@@ -88,6 +97,28 @@ export function renderUrgentTasks() {
     }).join('');
 
     container.innerHTML = tasksHTML;
+
+    // Add event listeners to checkboxes
+    const checkboxes = container.querySelectorAll('.home-urgent-task-checkbox');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                const taskId = e.target.getAttribute('data-task-id');
+                completeTaskFromHome(taskId);
+            }
+        });
+    });
+}
+
+function completeTaskFromHome(taskId) {
+    if (!AppState.tasks) return;
+    const task = AppState.tasks.find(t => t.taskId === taskId);
+    if (task) {
+        task.isComplete = true;
+        AppState.save();
+        renderUrgentTasks();
+        renderHomeStats();
+    }
 }
 
 export function renderRecentExpenses() {
