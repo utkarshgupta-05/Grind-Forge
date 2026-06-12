@@ -144,9 +144,15 @@
                 <span style="font-size: 1.2rem;">🎯</span>
               </div>
               <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
-                <div class="timer-display-circle" style="width: 160px; height: 160px; border-radius: 50%; border: 4px solid var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: radial-gradient(circle, var(--surface-elevated) 0%, var(--card-bg) 100%); box-shadow: inset 0 0 20px rgba(0,0,0,0.3);">
-                  <div id="home-timer-display" style="font-size: 2.2rem; font-weight: 700; color: var(--focus-accent); font-family: monospace;">25:00</div>
-                  <div id="home-timer-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Focus</div>
+                <div id="home-timer-container" class="timer-container" style="width: 160px; height: 160px; margin: 0 auto; margin-bottom: 0;">
+                  <svg class="progress-ring" width="160" height="160" viewBox="0 0 250 250">
+                    <circle class="progress-ring-bg" cx="125" cy="125" r="115"></circle>
+                    <circle id="home-progress-ring-circle" class="progress-ring-circle" cx="125" cy="125" r="115"></circle>
+                  </svg>
+                  <div class="timer-display">
+                    <div id="home-timer-display" style="font-size: 2.2rem; font-weight: 700; color: var(--focus-accent); font-family: monospace; line-height: 1;">25:00</div>
+                    <div id="home-timer-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Focus</div>
+                  </div>
                 </div>
                 <div style="width: 100%; margin-top: 8px;">
                   <input type="text" id="home-timer-session-name" placeholder="Session Name (optional)" style="width: 100%; background-color: var(--main-bg); border: 1px solid var(--card-border); border-radius: 6px; color: var(--text-primary); padding: 8px 12px; font-size: 0.85rem; text-align: center;" />

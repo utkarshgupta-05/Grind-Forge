@@ -8,6 +8,7 @@ import { initDashboardPage } from "./dashboard.js";
 import { initFocusPage } from "./focus.js";
 import { initNotesPage } from "./notes.js";
 import { initExpensesPage } from "./expenses.js";
+import { initSettingsPage } from "./settings.js";
 import { startLiveTimer } from "./utils.js";
 
 
@@ -39,3 +40,6 @@ if (currentPage === "notes.html") {
 if (currentPage === "expenses.html") {
     initExpensesPage();
 }
+if (currentPage === "settings.html") {
+    initSettingsPage();
+}

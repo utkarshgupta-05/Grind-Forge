@@ -4,7 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Productivity Dashboard</title>
+  <title>Settings — Grind Forge</title>
+  <meta name="description" content="Configure your Grind Forge productivity dashboard — profile, appearance, focus timer duration, monthly budget, and notifications." />
   <script src="js/theme-init.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/themes.css" />
@@ -33,10 +34,10 @@
     <main class="content" role="main">
       <header class="app-header">
         <div class="logo">
-          <img src="assets/images/logo-dark.png" alt="Productivity App Logo" class="logo-icon">
+          <img src="assets/images/logo-dark.png" alt="Grind Forge Logo" class="logo-icon">
         </div>
         <div class="welcome-msg">
-          <span class="welcome-text">Welcome, User!</span>
+          <span class="welcome-text">Settings</span>
           <div class="time-and-date">
             <span id="current-time">00:00:00</span>
             <span id="current-date">01/01/2023</span>
@@ -59,9 +60,189 @@
       </header>
 
       <div class="page-content">
-        
-        </div>
+        <div class="settings-page-content">
 
+          <!-- ── PROFILE INFORMATION ── -->
+          <section class="settings-section" aria-label="Profile Information">
+            <h2 class="settings-section-title">Profile Information</h2>
+
+            <div class="settings-profile-row">
+              <div class="settings-avatar" id="settings-avatar-display">U</div>
+              <div>
+                <button type="button" class="settings-upload-btn" id="settings-upload-btn">Upload New Picture</button>
+                <input type="file" id="settings-avatar-file" accept="image/jpeg,image/gif,image/png" hidden />
+                <p class="settings-upload-hint">JPG, GIF or PNG. Max size of 800K</p>
+              </div>
+            </div>
+
+            <div class="settings-fields-row">
+              <div class="settings-field">
+                <label for="settings-name">Full Name</label>
+                <input type="text" id="settings-name" placeholder="Your name" autocomplete="name" />
+              </div>
+              <div class="settings-field">
+                <label for="settings-email">Email Address</label>
+                <input type="email" id="settings-email" placeholder="you@example.com" autocomplete="email" />
+              </div>
+            </div>
+
+            <div class="settings-save-row">
+              <button type="button" class="settings-save-btn" id="settings-profile-save-btn">Save Profile</button>
+              <span class="settings-save-feedback" id="settings-profile-feedback"></span>
+            </div>
+          </section>
+
+          <!-- ── APPEARANCE ── -->
+          <section class="settings-section" aria-label="Appearance">
+            <h2 class="settings-section-title">Appearance</h2>
+            <div class="settings-appearance-grid">
+
+              <div class="settings-theme-card" id="settings-theme-dark" role="button" tabindex="0" aria-label="Dark Mode">
+                <div class="settings-theme-card-header">
+                  <span>Dark Mode</span>
+                  <div class="settings-theme-radio" id="settings-theme-dark-radio"></div>
+                </div>
+                <div class="settings-theme-preview dark-preview">
+                  <div class="settings-theme-preview-bar"></div>
+                </div>
+              </div>
+
+              <div class="settings-theme-card" id="settings-theme-light" role="button" tabindex="0" aria-label="Light Mode">
+                <div class="settings-theme-card-header">
+                  <span>Light Mode</span>
+                  <div class="settings-theme-radio" id="settings-theme-light-radio"></div>
+                </div>
+                <div class="settings-theme-preview light-preview">
+                  <div class="settings-theme-preview-bar"></div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- ── FOCUS DURATION ── -->
+          <section class="settings-section" aria-label="Focus Timer">
+            <h2 class="settings-section-title">Default Focus Duration</h2>
+            <p class="settings-section-desc">
+              Sets the default session length for the Pomodoro timer.
+              Saving will reset any active timer state.
+            </p>
+            <div class="settings-focus-options" id="settings-focus-duration-options">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="settings-custom-duration-row" id="settings-custom-duration-row">
+              <input type="number" id="settings-focus-custom-input" min="1" max="300" placeholder="e.g. 45" />
+              <label for="settings-focus-custom-input">minutes</label>
+            </div>
+            <div class="settings-save-row">
+              <button type="button" class="settings-save-btn" id="settings-focus-save-btn">Apply Duration</button>
+              <span class="settings-save-feedback" id="settings-focus-feedback"></span>
+            </div>
+          </section>
+
+          <!-- ── MONTHLY BUDGET ── -->
+          <section class="settings-section" aria-label="Monthly Budget">
+            <h2 class="settings-section-title">Monthly Expense Budget</h2>
+            <p class="settings-section-desc">
+              Defines the spending limit used by the progress bar.
+            </p>
+            <div class="settings-budget-row">
+              <span class="settings-currency-symbol">₹</span>
+              <input type="number" id="settings-budget-input" min="1" step="10" placeholder="e.g. 500" />
+              <span class="settings-budget-hint">per month</span>
+            </div>
+            <div class="settings-save-row">
+              <button type="button" class="settings-save-btn" id="settings-budget-save-btn">Save Budget</button>
+              <span class="settings-save-feedback" id="settings-budget-feedback"></span>
+            </div>
+          </section>
+
+          <!-- ── INTEGRATIONS + NOTIFICATIONS ── -->
+          <div class="settings-two-col">
+
+            <!-- Integrations -->
+            <section class="settings-section" aria-label="Integrations">
+              <h2 class="settings-section-title">Integrations</h2>
+
+              <div class="settings-integration-item">
+                <div class="settings-integration-icon">🎨</div>
+                <div class="settings-integration-info">
+                  <div class="settings-integration-name">Figma Sync</div>
+                  <div class="settings-integration-desc">Import design tasks</div>
+                </div>
+                <span class="settings-linked-badge">Linked</span>
+              </div>
+
+              <div class="settings-integration-item">
+                <div class="settings-integration-icon">🐙</div>
+                <div class="settings-integration-info">
+                  <div class="settings-integration-name">GitHub</div>
+                  <div class="settings-integration-desc">Link pull requests</div>
+                </div>
+                <button type="button" class="settings-connect-btn">Connect</button>
+              </div>
+
+              <div class="settings-integration-item">
+                <div class="settings-integration-icon">📅</div>
+                <div class="settings-integration-info">
+                  <div class="settings-integration-name">Google Calendar</div>
+                  <div class="settings-integration-desc">Sync tasks with calendar</div>
+                </div>
+                <button type="button" class="settings-connect-btn">Connect</button>
+              </div>
+            </section>
+
+            <!-- Notifications -->
+            <section class="settings-section" aria-label="Notifications">
+              <h2 class="settings-section-title">Notifications</h2>
+
+              <div class="settings-notification-item">
+                <div class="settings-notification-info">
+                  <div class="notif-title">Daily Digest</div>
+                  <div class="notif-desc">Receive summary at 8AM</div>
+                </div>
+                <label class="toggle-switch" aria-label="Daily Digest toggle">
+                  <input type="checkbox" id="notif-daily-digest" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-notification-item">
+                <div class="settings-notification-info">
+                  <div class="notif-title">Payment Alerts</div>
+                  <div class="notif-desc">When expenses exceed limit</div>
+                </div>
+                <label class="toggle-switch" aria-label="Payment Alerts toggle">
+                  <input type="checkbox" id="notif-payment-alerts" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-notification-item">
+                <div class="settings-notification-info">
+                  <div class="notif-title">Focus Prompts</div>
+                  <div class="notif-desc">Reminders to start sessions</div>
+                </div>
+                <label class="toggle-switch" aria-label="Focus Prompts toggle">
+                  <input type="checkbox" id="notif-focus-prompts" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+            </section>
+          </div>
+
+          <!-- ── EXPORT DATA ── -->
+          <div class="settings-export-section">
+            <div class="settings-export-info">
+              <div class="export-title">Export Account Data</div>
+              <div class="export-desc">Download a JSON file containing all your tasks, notes, expenses, focus sessions, and settings.</div>
+            </div>
+            <button type="button" class="settings-export-btn" id="settings-export-btn">Export JSON</button>
+          </div>
+
+        </div>
+      </div>
     </main>
   </div>
   <script type="module" src="js/app.js"></script>

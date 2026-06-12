@@ -60,7 +60,24 @@
 - **Focus Page**: Restructured `focus.html` to include a circular progress SVG ring around the timer display instead of inline styling.
 - Styled the circular progress bar natively in `css/components.css` using theme variables.
 - Rewrote the focus session persistence logic in `js/focus.js` using `localStorage` to ensure the countdown timer accurately continues running in the background even if the page is refreshed or the user navigates to other pages.
+- **Home Page Timer Linking**: Connected the Pomodoro Timer widget on the Home page (`index.html` & `home.js`) directly to the Focus page's persistent timer state in `localStorage`. Starting, pausing, or resetting the timer on the Home page now natively updates the Focus page's circular progress, and completed sessions from the Home page are properly logged in the Focus page's session history.
+
+## Phase 4G — Settings Page ✅
+
+- **`settings.html`**: Built a full Settings page matching the reference design with sections for Profile Information, Appearance, Focus Duration, Monthly Budget, Integrations, Notifications, and Export Data.
+- **`js/settings.js`**: Created a new module with clean, modular functions — `initProfileSection()`, `initAppearanceSection()`, `initFocusDurationSection()`, `initBudgetSection()`, `initNotificationsSection()`, `initExportSection()`. Exported two helpers: `getSettingFocusDuration()` and `getSettingMonthlyBudget()` used across pages.
+  - **Focus Duration**: Preset buttons (15, 20, 25, 30, 60 min) + Custom input. On save, updates `AppState.settings.focusDurationMinutes` and clears the persisted timer state so the next session picks up the new duration.
+  - **Monthly Budget**: Custom number input saved to `AppState.settings.monthlyBudget`.
+  - **Appearance**: Dark/Light theme cards mirror the existing `theme.js` toggle, keeping both in sync.
+  - **Profile**: Name, email, avatar upload (FileReader → localStorage) saved to `AppState.settings.profile`.
+  - **Notifications**: Three toggle switches persisted to settings.
+  - **Export**: Downloads a full JSON snapshot of all app data.
+- **`js/focus.js`**: Now reads `getSettingFocusDuration()` at page load and on reset, replacing the hard-coded 25 min constant.
+- **`js/home.js`**: Home timer and expense progress bar/label now read from `getSettingFocusDuration()` and `getSettingMonthlyBudget()` respectively.
+- **`js/expenses.js`**: `renderExpenseStats()` now reads the budget from settings to update `expense-budget-limit` and `expense-budget-progress-fill` elements, turning red when at 100%.
+- **`js/app.js`**: Wired `initSettingsPage()` for `settings.html`.
+- **`css/components.css`**: Added all Settings page styles (section cards, profile avatar, theme cards with radio indicators, toggle switches, focus duration pill buttons, budget input, integration rows, notification rows, export bar).
 
 ## Future Phases
 
-- **Phase 4G**: Redesign remaining individual pages (Settings) using the new foundation.
+- **Phase 4H**: Further polish — responsive settings on mobile, advanced dashboard analytics.

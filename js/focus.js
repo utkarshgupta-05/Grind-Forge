@@ -1,9 +1,15 @@
 import { AppState } from "./state.js";
 import { escapeHTML } from "./utils.js";
 import { storageGet, storageSet } from "./storage.js";
+import { getSettingFocusDuration } from "./settings.js";
 
 
-const SESSION_DURATION_MINUTES = 25;
+// Duration is read from settings at page load; can be changed via Settings page
+function getSessionDuration() {
+    return getSettingFocusDuration();
+}
+
+let SESSION_DURATION_MINUTES = getSessionDuration();
 let timeRemaining = SESSION_DURATION_MINUTES * 60; // seconds
 let timerInterval = null;
 let isRunning = false;
@@ -41,8 +47,11 @@ export function initFocusPage() {
         circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
     }
 
+    // Re-read duration from settings on each page load
+    SESSION_DURATION_MINUTES = getSessionDuration();
+
     const savedState = storageGet("app_focus_timer_state");
-    if (savedState) {
+    if (savedState && savedState.timeRemaining !== null && savedState.timeRemaining !== undefined) {
         isRunning = savedState.isRunning;
         timeRemaining = savedState.timeRemaining;
         sessionStartedAt = savedState.sessionStartedAt;
@@ -60,6 +69,9 @@ export function initFocusPage() {
                 saveCompletedSession();
             }
         }
+    } else {
+        // No saved state — initialise fresh from settings
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
     }
 
     updateTimerDisplay();
@@ -145,6 +157,7 @@ export function pauseFocusSession() {
 export function resetFocusSession() {
     clearInterval(timerInterval);
     isRunning = false;
+    SESSION_DURATION_MINUTES = getSessionDuration();
     timeRemaining = SESSION_DURATION_MINUTES * 60;
     sessionStartedAt = null;
     sessionEndTime = null;

@@ -3,6 +3,7 @@ import { AppState } from "./state.js";
 import { storageGet, storageSet } from "./storage.js";
 import { WEATHER_API_KEY } from "./config.js";
 import { escapeHTML, getDaysDiff, formatCurrency } from "./utils.js";
+import { getSettingFocusDuration, getSettingMonthlyBudget } from "./settings.js";
 
 
 
@@ -116,9 +117,15 @@ export function renderRecentExpenses() {
     }
 
     if (progressFillEl) {
-        // Budget limit is 500
-        const percentage = Math.min(100, (monthlySpent / 500) * 100);
+        const budget = getSettingMonthlyBudget();
+        const percentage = Math.min(100, (monthlySpent / budget) * 100);
         progressFillEl.style.width = `${percentage}%`;
+    }
+
+    // Update the budget label on the home page if present
+    const budgetLimitEl = document.getElementById("home-expenses-budget-limit");
+    if (budgetLimitEl) {
+        budgetLimitEl.textContent = formatCurrency(getSettingMonthlyBudget());
     }
 
     const recent = sortedExpenses.slice(0, 3);
@@ -178,87 +185,157 @@ export function initHomeTimer() {
     const pauseBtn = document.getElementById("home-timer-pause-btn");
     const resetBtn = document.getElementById("home-timer-reset-btn");
     const nameInput = document.getElementById("home-timer-session-name");
+    const circle = document.getElementById("home-progress-ring-circle");
 
     if (!display || !startBtn || !pauseBtn || !resetBtn) return;
 
+    const SESSION_DURATION_MINUTES = getSettingFocusDuration();
+    const CIRCLE_RADIUS = 115;
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+
+    let timeRemaining = SESSION_DURATION_MINUTES * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let sessionStartedAt = null;
+    let sessionEndTime = null;
+
+    if (circle) {
+        circle.style.strokeDasharray = `${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`;
+        circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+    }
+
+    function saveFocusState() {
+        storageSet("app_focus_timer_state", {
+            timeRemaining,
+            isRunning,
+            sessionStartedAt,
+            sessionEndTime
+        });
+    }
+
+    const savedState = storageGet("app_focus_timer_state");
+    if (savedState) {
+        isRunning = savedState.isRunning;
+        timeRemaining = savedState.timeRemaining;
+        sessionStartedAt = savedState.sessionStartedAt;
+        sessionEndTime = savedState.sessionEndTime;
+
+        if (isRunning && sessionEndTime) {
+            timeRemaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+            if (timeRemaining > 0) {
+                timerInterval = setInterval(homeFocusTick, 1000);
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            } else {
+                isRunning = false;
+                sessionEndTime = null;
+                saveCompletedSession();
+            }
+        } else if (isRunning === false) {
+            if (timeRemaining !== SESSION_DURATION_MINUTES * 60) {
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            }
+        }
+    }
+
     function updateHomeTimerDisplay() {
-        const minutes = Math.floor(homeTimeRemaining / 60).toString().padStart(2, '0');
-        const seconds = (homeTimeRemaining % 60).toString().padStart(2, '0');
-        if (homeTimeRemaining > 0) {
+        const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+        if (timeRemaining > 0) {
             display.textContent = `${minutes}:${seconds}`;
         } else {
-            display.textContent = "00:00";
+            display.textContent = "Complete!";
+        }
+
+        if (circle) {
+            const totalSeconds = SESSION_DURATION_MINUTES * 60;
+            const progress = timeRemaining / totalSeconds;
+            const offset = CIRCLE_CIRCUMFERENCE - (progress * CIRCLE_CIRCUMFERENCE);
+            circle.style.strokeDashoffset = offset;
+        }
+    }
+
+    function saveCompletedSession() {
+        const sessionName = nameInput && nameInput.value.trim() !== "" ? nameInput.value.trim() : "Unnamed Session";
+        const completedSession = {
+            sessionId: crypto.randomUUID(),
+            sessionName: sessionName,
+            durationMinutes: SESSION_DURATION_MINUTES,
+            startedAt: sessionStartedAt,
+            completedAt: new Date().toISOString()
+        };
+        if (!AppState.focusSessions) AppState.focusSessions = [];
+        AppState.focusSessions.push(completedSession);
+        AppState.save();
+
+        sessionStartedAt = null;
+        if (nameInput) nameInput.value = "";
+        
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
+        saveFocusState();
+        updateHomeTimerDisplay();
+
+        setTimeout(() => {
+            updateHomeTimerDisplay();
+        }, 3000);
+
+        renderFocusSessionsStat();
+    }
+
+    function homeFocusTick() {
+        const remaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+        timeRemaining = remaining;
+        saveFocusState();
+        updateHomeTimerDisplay();
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            sessionEndTime = null;
+            saveFocusState();
+            saveCompletedSession();
         }
     }
 
     startBtn.addEventListener("click", () => {
-        if (homeTimerIsRunning) return;
-        homeTimerIsRunning = true;
+        if (isRunning) return;
+        isRunning = true;
 
-        if (!homeSessionStartedAt) {
-            homeSessionStartedAt = new Date().toISOString();
+        if (!sessionStartedAt) {
+            sessionStartedAt = new Date().toISOString();
         }
 
-        homeSessionEndTime = Date.now() + homeTimeRemaining * 1000;
+        sessionEndTime = Date.now() + timeRemaining * 1000;
+        saveFocusState();
 
         startBtn.disabled = true;
         pauseBtn.disabled = false;
 
-        homeTimerInterval = setInterval(() => {
-            const remaining = Math.max(0, Math.round((homeSessionEndTime - Date.now()) / 1000));
-            homeTimeRemaining = remaining;
-            updateHomeTimerDisplay();
-
-            if (homeTimeRemaining <= 0) {
-                clearInterval(homeTimerInterval);
-                homeTimerIsRunning = false;
-                homeSessionEndTime = null;
-                
-                const sessionName = nameInput ? nameInput.value.trim() : "Unnamed Session";
-                const completedSession = {
-                    sessionId: crypto.randomUUID(),
-                    sessionName: sessionName || "Unnamed Session",
-                    durationMinutes: 25,
-                    startedAt: homeSessionStartedAt,
-                    completedAt: new Date().toISOString()
-                };
-                if (!AppState.focusSessions) AppState.focusSessions = [];
-                AppState.focusSessions.push(completedSession);
-                AppState.save();
-
-                homeSessionStartedAt = null;
-                if (nameInput) nameInput.value = "";
-                
-                startBtn.disabled = false;
-                pauseBtn.disabled = true;
-                homeTimeRemaining = 25 * 60;
-                updateHomeTimerDisplay();
-
-                display.textContent = "Complete!";
-                setTimeout(() => {
-                    updateHomeTimerDisplay();
-                }, 3000);
-
-                renderFocusSessionsStat();
-            }
-        }, 1000);
+        timerInterval = setInterval(homeFocusTick, 1000);
     });
 
     pauseBtn.addEventListener("click", () => {
-        if (!homeTimerIsRunning) return;
-        homeTimerIsRunning = false;
-        clearInterval(homeTimerInterval);
-        homeSessionEndTime = null;
+        if (!isRunning) return;
+        isRunning = false;
+        clearInterval(timerInterval);
+        sessionEndTime = null;
+        saveFocusState();
+        
         startBtn.disabled = false;
         pauseBtn.disabled = true;
     });
 
     resetBtn.addEventListener("click", () => {
-        clearInterval(homeTimerInterval);
-        homeTimerIsRunning = false;
-        homeTimeRemaining = 25 * 60;
-        homeSessionStartedAt = null;
-        homeSessionEndTime = null;
+        clearInterval(timerInterval);
+        isRunning = false;
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
+        sessionStartedAt = null;
+        sessionEndTime = null;
+        saveFocusState();
+        
         updateHomeTimerDisplay();
         startBtn.disabled = false;
         pauseBtn.disabled = true;

@@ -1,5 +1,6 @@
 import { AppState } from "./state.js";
 import { validateRequired, formatCurrency, formatDate, escapeHTML } from "./utils.js";
+import { getSettingMonthlyBudget } from "./settings.js";
 
 let currentFilter = 'all';
 let editingExpenseId = null;
@@ -322,6 +323,9 @@ export function renderExpenseStats() {
     const thisMonthAmountEl = document.getElementById("expense-this-month");
     const topCategoryEl = document.getElementById("expense-top-category");
     const totalCountEl = document.getElementById("expense-total-count");
+    const budgetLimitEl = document.getElementById("expense-budget-limit");
+    const budgetProgressEl = document.getElementById("expense-budget-progress-fill");
+
     if (!totalAmountEl || !thisMonthAmountEl || !topCategoryEl || !totalCountEl) {
         return;
     }
@@ -329,7 +333,14 @@ export function renderExpenseStats() {
     thisMonthAmountEl.textContent = formatCurrency(stats.thisMonthAmount);
     topCategoryEl.textContent = stats.topCategory;
     totalCountEl.textContent = stats.totalCount;
-    // topCategoryPercentageEl.textContent = stats.topCategoryPercentage;
+
+    const budget = getSettingMonthlyBudget();
+    if (budgetLimitEl) budgetLimitEl.textContent = formatCurrency(budget);
+    if (budgetProgressEl) {
+        const pct = Math.min(100, (stats.thisMonthAmount / budget) * 100);
+        budgetProgressEl.style.width = `${pct}%`;
+        budgetProgressEl.style.backgroundColor = pct >= 100 ? 'var(--danger)' : 'var(--expense-accent)';
+    }
 }
 
 export function renderExpenseList(container, filter = "all") {
