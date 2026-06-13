@@ -141,8 +141,23 @@ export function renderTasks(container, filter = "all") {
         return;
     }
 
-    let tasksToRender = AppState.tasks;
-    tasksToRender.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    let tasksToRender = [...AppState.tasks];
+    tasksToRender.sort((a, b) => {
+        // Separate pending and completed tasks
+        if (a.isComplete !== b.isComplete) {
+            return a.isComplete ? 1 : -1;
+        }
+        
+        // If both are completed, sort by completedAt descending
+        if (a.isComplete && b.isComplete) {
+            const dateA = a.completedAt ? new Date(a.completedAt) : new Date(a.createdAt);
+            const dateB = b.completedAt ? new Date(b.completedAt) : new Date(b.createdAt);
+            return dateB - dateA;
+        }
+        
+        // If both are pending, sort by createdAt descending
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
     if (filter === "completed") {
         tasksToRender = tasksToRender.filter((task) => task.isComplete);
         if (tasksToRender.length === 0) {

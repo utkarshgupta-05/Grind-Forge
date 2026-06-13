@@ -1,0 +1,7 @@
+/* css/pages/dashboard.css */
+.widget-card-dashboard { padding: 0; overflow: hidden; height: 100%; }
+.widget-header-dashboard { padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); }
+.widget-title-accent { margin: 0; color: var(--accent); }
+.widget-title-analytics { margin: 0; color: var(--analytics-accent); }
+.widget-list-container { border: none; box-shadow: none; background: transparent; }
+.widget-list-container-padded { border: none; box-shadow: none; background: transparent; padding: 20px; }

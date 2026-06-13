@@ -15,11 +15,25 @@
   --btn-bg: #4e9664;
   --btn-text: #ffffff;
 
-  --notes-accent: #d16ac4;
-  --focus-accent: #9fb3d0;
+  --tasks-accent:          #4e9664;
+  --tasks-accent-bg:       rgba(78, 150, 100, 0.12);
+  --tasks-accent-glow:     rgba(78, 150, 100, 0.18);
+
+  --focus-accent-bg:       rgba(159, 179, 208, 0.12);
+  --focus-accent-glow:     rgba(159, 179, 208, 0.18);
+
+  --notes-accent-bg:       rgba(209, 106, 196, 0.12);
+  --notes-accent-glow:     rgba(209, 106, 196, 0.18);
+
+  --expense-accent-bg:     rgba(226, 140, 92, 0.12);
+  --expense-accent-glow:   rgba(226, 140, 92, 0.18);
+
+  --analytics-accent:      #3ba88c;
+  --analytics-accent-bg:   rgba(59, 168, 140, 0.12);
+  --analytics-accent-glow: rgba(59, 168, 140, 0.18);
+
   --completed-accent: #4f9a50;
   --xp-accent: #3f730f;
-  --expense-accent: #e28c5c; /* Earthy copper for expenses */
 
   /* General Text Colors for Dark Theme */
   --text-primary: #f3f7f4;
@@ -40,12 +54,26 @@
   --bg: var(--main-bg);
   --surface: var(--card-bg);
   --border: var(--card-border);
-  --accent: var(--btn-bg);
+  --accent: var(--tasks-accent);
   --success: var(--completed-accent);
   --danger: #c96b6b;
   --danger-bg: rgba(201, 107, 107, 0.15);
   --warning: #d4a84a;
-  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --warning-bg:            rgba(212, 168, 74, 0.12);
+  
+  --surface-elevated:      #1f2b23;
+  --surface-overlay:        rgba(0, 0, 0, 0.55);
+
+  --shadow-sm:             0 2px 4px rgba(0, 0, 0, 0.20);
+  --shadow-card:           0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover:     0 8px 24px rgba(0, 0, 0, 0.38);
+  --shadow-hero:           0 4px 20px rgba(0, 0, 0, 0.45);
+
+  --accent-primary:         #7c6ff7;
+  --accent-secondary:       #34d399;
+  --accent-tertiary:        #fb923c;
+
+  --card-shadow: var(--shadow-card);
 }
 
 html {
@@ -58,6 +86,7 @@ html:not(.light-theme) {
 }
 
 body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: var(--text-primary);
   background-color: var(--main-bg);
 }

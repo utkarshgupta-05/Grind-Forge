@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages/home.css" />
   <link rel="stylesheet" href="css/responsive.css" />
 </head>
 
@@ -118,9 +119,9 @@
           
           <!-- LEFT: Priority Tasks -->
           <div class="split-main">
-            <section id="urgent-tasks" class="urgent-tasks form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--tasks-accent); height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
-                <h3 class="split-section-title" style="margin: 0; color: var(--tasks-accent);">Priority Tasks</h3>
+            <section id="urgent-tasks" class="urgent-tasks form-card widget-card-tasks">
+              <div class="widget-header">
+                <h3 class="split-section-title widget-title-tasks">Priority Tasks</h3>
               </div>
               <div class="urgent-task-list">
                 <div class="urgent-task-header-row">
@@ -138,12 +139,12 @@
 
           <!-- RIGHT: Pomodoro Timer -->
           <div class="split-aside">
-            <section id="home-pomodoro-widget" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--focus-accent); height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="split-section-title" style="margin: 0; color: var(--focus-accent);">Pomodoro Timer</h3>
+            <section id="home-pomodoro-widget" class="form-card widget-card-focus">
+              <div class="widget-header-flex">
+                <h3 class="split-section-title widget-title-focus">Pomodoro Timer</h3>
                 <span style="font-size: 1.2rem;">🎯</span>
               </div>
-              <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+              <div class="flex-col-gap-16">
                 <div id="home-timer-container" class="timer-container" style="width: 160px; height: 160px; margin: 0 auto; margin-bottom: 0;">
                   <svg class="progress-ring" width="160" height="160" viewBox="0 0 250 250">
                     <circle class="progress-ring-bg" cx="125" cy="125" r="115"></circle>
@@ -173,9 +174,9 @@
           
           <!-- LEFT: Recent Expenses -->
           <div class="split-main">
-            <section id="recent-expenses" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--expense-accent); height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="split-section-title" style="margin: 0; color: var(--expense-accent);">Recent Expenses</h3>
+            <section id="recent-expenses" class="form-card widget-card-expense">
+              <div class="widget-header-flex">
+                <h3 class="split-section-title widget-title-expense">Recent Expenses</h3>
                 <a href="expenses.html" style="font-size: 0.85rem; color: var(--expense-accent); font-weight: 600;">+ Add Expense</a>
               </div>
               <div style="padding: 20px 24px;">
@@ -203,9 +204,9 @@
 
           <!-- RIGHT: Quick Notes -->
           <div class="split-aside">
-            <section id="home-quick-notes-widget" class="form-card" style="padding: 0; overflow: hidden; border-left: 3px solid var(--notes-accent); height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated); display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="split-section-title" style="margin: 0; color: var(--notes-accent);">Quick Notes</h3>
+            <section id="home-quick-notes-widget" class="form-card widget-card-notes">
+              <div class="widget-header-flex">
+                <h3 class="split-section-title widget-title-notes">Quick Notes</h3>
                 <button id="home-save-note-btn" title="Save draft to Notes list" style="background: none; border: none; color: var(--notes-accent); font-size: 1.25rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center;">➕</button>
               </div>
               <div style="padding: 20px;">
