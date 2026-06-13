@@ -1,5 +1,5 @@
 import { AppState } from "./state.js";
-import { validateRequired, escapeHTML } from "./utils.js";
+import { validateRequired, escapeHTML, sanitizeHTML } from "./utils.js";
 
 let editingNoteId = null;
 let currentDrawerNoteId = null;
@@ -443,7 +443,7 @@ export function openNoteDrawer(noteId) {
     if (contentEl) {
         // Render saved HTML content (notes may contain simple formatting)
         if (note.noteContent && note.noteContent.indexOf('<') !== -1) {
-            contentEl.innerHTML = note.noteContent;
+            contentEl.innerHTML = sanitizeHTML(note.noteContent);
         } else {
             contentEl.innerHTML = escapeHTML(note.noteContent).replace(/\n/g, '<br>');
         }

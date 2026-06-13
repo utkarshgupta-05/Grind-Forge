@@ -23,24 +23,17 @@ updateHeaderProfile();
 const currentPage = getCurrentPage();
 document.body.dataset.page = currentPage;
 
-if (currentPage === "index.html") {
-    initHomePage();
+const pageInitMap = {
+    "index.html": initHomePage,
+    "tasks.html": initTasksPage,
+    "notes.html": initNotesPage,
+    "focus.html": initFocusPage,
+    "expenses.html": initExpensesPage,
+    "settings.html": initSettingsPage,
+    "dashboard.html": initDashboardPage
+};
+
+const initFunction = pageInitMap[currentPage];
+if (initFunction) {
+    initFunction();
 }
-if (currentPage === "tasks.html") {
-    initTasksPage();
-}
-if (currentPage === "dashboard.html") {
-    initDashboardPage();
-}
-if (currentPage === "focus.html") {
-    initFocusPage();
-}
-if (currentPage === "notes.html") {
-    initNotesPage();
-}
-if (currentPage === "expenses.html") {
-    initExpensesPage();
-}
-if (currentPage === "settings.html") {
-    initSettingsPage();
-}

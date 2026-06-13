@@ -17,14 +17,6 @@ export function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-export function generateId() {
-    const randNum = Math.random();
-    const hex = randNum.toString(16);
-    const id = hex.replace('0.','');
-    const shortId = id.slice(0,8);
-    return shortId;
-}
-
 export function formatDate(date) {
     if (date === undefined || date === null) {
         return 'Invalid date';
@@ -68,6 +60,20 @@ export function formatCurrency(amount) {
     }).format(amount);
 }
 
+export function formatNumber(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0';
+    }
+    return String(value);
+}
+
+export function formatMinutes(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0 min';
+    }
+    return `${value} min`;
+}
+
 export function getDaysDiff(targetDate,currentDate) {
     if(targetDate === undefined || targetDate === null) {
         return null;
@@ -75,14 +81,54 @@ export function getDaysDiff(targetDate,currentDate) {
     if(currentDate === undefined || currentDate === null) {
         return null;
     }
-    const target = new Date(targetDate);
-    const current = new Date(currentDate);
+    const target = parseLocalDate(targetDate);
+    const current = parseLocalDate(currentDate);
     if(isNaN(target.getTime()) || isNaN(current.getTime())) {
         return null;
     }
     const diffTime = target.getTime() - current.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+}
+
+export function parseLocalDate(dateStr) {
+    if (!dateStr) return null;
+    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+        const datePart = dateStr.split('T')[0];
+        const parts = datePart.split('-');
+        if (parts.length === 3) {
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        }
+    }
+    return new Date(dateStr);
+}
+
+export function sanitizeHTML(html) {
+    if (!html) return '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    const dangerousTags = ['script', 'style', 'iframe', 'object', 'embed', 'applet', 'meta', 'base', 'link'];
+    dangerousTags.forEach(tag => {
+        const elements = doc.querySelectorAll(tag);
+        elements.forEach(el => el.remove());
+    });
+    
+    const allElements = doc.querySelectorAll('*');
+    allElements.forEach(el => {
+        const attributes = Array.from(el.attributes);
+        attributes.forEach(attr => {
+            if (attr.name.toLowerCase().startsWith('on')) {
+                el.removeAttribute(attr.name);
+            }
+            if ((attr.name.toLowerCase() === 'href' || attr.name.toLowerCase() === 'src') && 
+                attr.value.trim().toLowerCase().startsWith('javascript:')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    
+    return doc.body.innerHTML;
 }
 
 export function validateRequired(value) {

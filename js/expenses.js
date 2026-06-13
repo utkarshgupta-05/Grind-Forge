@@ -1,5 +1,5 @@
 import { AppState } from "./state.js";
-import { validateRequired, formatCurrency, formatDate, escapeHTML } from "./utils.js";
+import { validateRequired, formatCurrency, formatDate, escapeHTML, parseLocalDate } from "./utils.js";
 import { getSettingMonthlyBudget } from "./settings.js";
 
 let currentFilter = 'all';
@@ -276,8 +276,7 @@ export function getExpenseStats() {
 
     const thisMonthAmount = expenses.filter((expense) => {
         if (!expense.expenseDate) return false;
-        const [year, month, day] = expense.expenseDate.split("-").map(Number);
-        const expenseDate = new Date(year, month - 1, day);
+        const expenseDate = parseLocalDate(expense.expenseDate);
         const currentDate = new Date();
         return expenseDate.getMonth() === currentDate.getMonth() && expenseDate.getFullYear() === currentDate.getFullYear();
     }).reduce((total, expense) => total + expense.expenseAmount, 0);
@@ -348,7 +347,7 @@ export function renderExpenseList(container, filter = "all") {
         throw new Error("Valid container element is required");
     }
     let expenses = [...AppState.expenses].sort((a, b) => {
-        const dateDiff = new Date(b.expenseDate) - new Date(a.expenseDate);
+        const dateDiff = parseLocalDate(b.expenseDate) - parseLocalDate(a.expenseDate);
         // Primary sort: by expense date descending
         if (dateDiff !== 0) return dateDiff;
         // Tiebreaker: if same date, sort by creation time descending (newest added = first)
@@ -413,8 +412,7 @@ export function renderCategoryBreakdown(container) {
     // Filter expenses for this month
     const thisMonthExpenses = expenses.filter((expense) => {
         if (!expense.expenseDate) return false;
-        const [year, month, day] = expense.expenseDate.split("-").map(Number);
-        const expenseDate = new Date(year, month - 1, day);
+        const expenseDate = parseLocalDate(expense.expenseDate);
         return expenseDate.getMonth() === currentDate.getMonth() &&
             expenseDate.getFullYear() === currentDate.getFullYear();
     });

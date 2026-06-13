@@ -2,7 +2,7 @@ import { getTaskStats } from "./tasks.js";
 import { AppState } from "./state.js";
 import { storageGet, storageSet } from "./storage.js";
 import { WEATHER_API_KEY } from "./config.js";
-import { escapeHTML, getDaysDiff, formatCurrency } from "./utils.js";
+import { escapeHTML, getDaysDiff, formatCurrency, debounce, parseLocalDate } from "./utils.js";
 import { getSettingFocusDuration, getSettingMonthlyBudget } from "./settings.js";
 
 
@@ -115,6 +115,7 @@ function completeTaskFromHome(taskId) {
     const task = AppState.tasks.find(t => t.taskId === taskId);
     if (task) {
         task.isComplete = true;
+        task.completedAt = new Date().toISOString();
         AppState.save();
         renderUrgentTasks();
         renderHomeStats();
@@ -129,14 +130,14 @@ export function renderRecentExpenses() {
     if (!container) return;
 
     const expenses = (AppState.expenses || []);
-    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
+    const sortedExpenses = [...expenses].sort((a, b) => parseLocalDate(b.expenseDate) - parseLocalDate(a.expenseDate));
 
     // Calculate total spent in current month
     const today = new Date();
     const firstDateOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     
     const monthlySpent = expenses.reduce((acc, curr) => {
-        const expenseDate = new Date(curr.expenseDate);
+        const expenseDate = parseLocalDate(curr.expenseDate);
         if (expenseDate >= firstDateOfMonth && expenseDate <= today) {
             return acc + parseFloat(curr.expenseAmount);
         }
@@ -183,7 +184,7 @@ export function renderRecentExpenses() {
     container.innerHTML = recent.map(exp => {
         const cat = exp.expenseCategory ? exp.expenseCategory.toLowerCase() : "other";
         const icon = categoryIcons[cat] || "💸";
-        const formattedDate = exp.expenseDate ? new Date(exp.expenseDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+        const formattedDate = exp.expenseDate ? parseLocalDate(exp.expenseDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
         return `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--card-border);">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -395,13 +396,15 @@ export function initQuickNotes() {
     }
 
     // Auto-save on typing
-    textarea.addEventListener("input", () => {
+    const autoSaveDraft = debounce(() => {
         const val = textarea.value;
         storageSet("quick-note-draft", val);
         const time = new Date();
         storageSet("quick-note-draft-time", time.toISOString());
         statusEl.textContent = `Draft auto-saved`;
-    });
+    }, 500);
+
+    textarea.addEventListener("input", autoSaveDraft);
 
     // Save Note to AppState.notes on button click
     saveBtn.addEventListener("click", () => {

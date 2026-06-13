@@ -1,0 +1,3753 @@
+﻿
+
+=== app.js ===
+import { AppState } from "./state.js";
+import { highlightActiveLink } from "./router.js";
+import { getCurrentPage } from "./router.js";
+import { initTheme, bindThemeToggle } from "./theme.js";
+import { initTasksPage } from "./tasks.js";
+import { initHomePage } from "./home.js";
+import { initDashboardPage } from "./dashboard.js";
+import { initFocusPage } from "./focus.js";
+import { initNotesPage } from "./notes.js";
+import { initExpensesPage } from "./expenses.js";
+import { initSettingsPage } from "./settings.js";
+import { startLiveTimer, updateHeaderProfile } from "./utils.js";
+
+
+AppState.load();
+
+initTheme();
+bindThemeToggle();
+highlightActiveLink();
+startLiveTimer();
+updateHeaderProfile();
+
+const currentPage = getCurrentPage();
+document.body.dataset.page = currentPage;
+
+if (currentPage === "index.html") {
+    initHomePage();
+}
+if (currentPage === "tasks.html") {
+    initTasksPage();
+}
+if (currentPage === "dashboard.html") {
+    initDashboardPage();
+}
+if (currentPage === "focus.html") {
+    initFocusPage();
+}
+if (currentPage === "notes.html") {
+    initNotesPage();
+}
+if (currentPage === "expenses.html") {
+    initExpensesPage();
+}
+if (currentPage === "settings.html") {
+    initSettingsPage();
+}
+
+
+
+=== config.js ===
+// config.js â€” API keys and environment configuration
+//
+// âš ï¸  SECURITY NOTE:
+// This file contains API keys and MUST be added to .gitignore before committing.
+// For production deployment, replace this with a server-side proxy endpoint
+// so the key is never exposed in client-side source code.
+//
+// To use: copy this file, add your own key, and add "js/config.js" to .gitignore.
+
+export const WEATHER_API_KEY = '03d14367cbbd4eefb98100940262605';
+
+
+
+=== dashboard.js ===
+import { getTaskStats } from './tasks.js';
+import { getNoteStats } from './notes.js';
+import { getExpenseStats } from './expenses.js';
+import { AppState } from './state.js';
+import { escapeHTML } from './utils.js';
+
+const DEFAULT_DASHBOARD_TAB = 'all';
+let currentDashboardTab = DEFAULT_DASHBOARD_TAB;
+
+function formatCurrency(value) {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
+}
+
+function formatNumber(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0';
+    }
+    return String(value);
+}
+
+function formatMinutes(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0 min';
+    }
+    return `${value} min`;
+}
+
+function getStatsForDashboardTab(tabName) {
+    const selectedTab = tabName || currentDashboardTab || DEFAULT_DASHBOARD_TAB;
+    if (selectedTab === 'tasks') {
+        const stats = getTaskDashboardStats();
+        return [
+            { label: 'Total Tasks', value: formatNumber(stats.totalTasks) },
+            { label: 'Completed Tasks', value: formatNumber(stats.completedTasks) },
+            { label: 'Pending Tasks', value: formatNumber(stats.pendingTasks) },
+            { label: 'Overdue Tasks', value: formatNumber(stats.overdueTasks) },
+            { label: 'Completed Today', value: formatNumber(stats.completedToday) },
+            { label: 'Completion Rate', value: `${formatNumber(stats.completionRate)}%` },
+        ];
+    }
+
+    if (selectedTab === 'notes') {
+        const stats = getNoteDashboardStats();
+        return [
+            { label: 'Total Notes', value: formatNumber(stats.totalNotes) },
+            { label: 'Notes Created Today', value: formatNumber(stats.notesCreatedToday) },
+            { label: 'Notes Updated This Week', value: formatNumber(stats.notesUpdatedThisWeek) },
+            { label: 'Newest Note', value: stats.latestNote ? stats.latestNote.noteTitle : 'None' },
+            { label: 'Oldest Note', value: stats.oldestNote ? stats.oldestNote.noteTitle : 'None' },
+            { label: 'Updated vs Created Today', value: `${formatNumber(stats.notesUpdatedThisWeek)} / ${formatNumber(stats.notesCreatedToday)}` },
+        ];
+    }
+
+    if (selectedTab === 'focus') {
+        const stats = getFocusDashboardStats();
+        return [
+            { label: 'Total Sessions', value: formatNumber(stats.totalSessions) },
+            { label: 'Total Focus Time', value: formatMinutes(stats.totalFocusTime) },
+            { label: 'Average Session', value: formatMinutes(Math.round(stats.averageDuration)) },
+            { label: 'Sessions Today', value: formatNumber(stats.completedToday) },
+            { label: 'Focus Time This Week', value: formatMinutes(stats.focusTimeThisWeek) },
+            { label: 'Latest Session', value: stats.latestSession ? stats.latestSession.sessionName || 'Focus Session' : 'None' },
+        ];
+    }
+
+    if (selectedTab === 'expenses') {
+        const stats = getExpenseDashboardStats();
+        return [
+            { label: 'Total Expenses', value: formatNumber(stats.totalCount) },
+            { label: 'Total Spent', value: formatCurrency(stats.totalAmount) },
+            { label: 'This Month Spending', value: formatCurrency(stats.thisMonthAmount) },
+            { label: 'Average Expense', value: formatCurrency(stats.totalCount > 0 ? stats.totalAmount / stats.totalCount : 0) },
+            { label: 'Highest Expense', value: stats.highestExpenseTitle },
+            { label: 'Top Category', value: stats.topCategory || 'N/A' },
+        ];
+    }
+
+    const allStats = getAllDashboardStats();
+    return [
+        { label: 'Total Tasks', value: formatNumber(allStats.tasks.totalTasks) },
+        { label: 'Completed Tasks', value: formatNumber(allStats.tasks.completedTasks) },
+        { label: 'Total Notes', value: formatNumber(allStats.notes.totalNotes) },
+        { label: 'Total Expenses', value: formatNumber(allStats.expenses.totalCount) },
+        { label: 'This Month Spending', value: formatCurrency(allStats.expenses.thisMonthAmount) },
+        { label: 'Total Focus Sessions', value: formatNumber(allStats.focus.totalSessions) },
+    ];
+}
+
+export function renderDashboardStats(tabName = currentDashboardTab) {
+    const cardData = getStatsForDashboardTab(tabName);
+    const cards = Array.from(document.querySelectorAll('.dashboard-stats-grid .stat-card'));
+    if (cards.length === 0) {
+        return;
+    }
+
+    cards.forEach((card, index) => {
+        const stat = cardData[index] || { label: '', value: '' };
+        const titleEl = card.querySelector('h3');
+        const valueEl = card.querySelector('p');
+        if (titleEl) {
+            titleEl.textContent = stat.label;
+        }
+        if (valueEl) {
+            valueEl.textContent = stat.value;
+        }
+    });
+}
+
+export function setActiveDashboardTab(tabName) {
+    const tabList = document.getElementById('dashboard-tab-list');
+    if (!tabList) {
+        return;
+    }
+
+    const tabButtons = Array.from(tabList.querySelectorAll('.tab-btn'));
+    tabButtons.forEach((button) => {
+        const isActive = button.dataset.dashboardTab === tabName;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    const pageContent = tabList.closest('.page-content');
+    if (pageContent) {
+        pageContent.dataset.activeTab = tabName;
+    }
+
+    currentDashboardTab = tabName;
+    renderDashboardStats(tabName);
+    renderRecentActivities(tabName);
+    renderDashboardInsights(tabName);
+}
+
+export function handleDashboardTabClick(event) {
+    const tabButton = event.target.closest('[data-dashboard-tab]');
+    if (!tabButton || !event.currentTarget.contains(tabButton)) {
+        return;
+    }
+
+    const tabName = tabButton.dataset.dashboardTab;
+    if (!tabName || tabName === currentDashboardTab) {
+        return;
+    }
+
+    event.preventDefault();
+    setActiveDashboardTab(tabName);
+}
+
+export function initDashboardTabs() {
+    const tabList = document.getElementById('dashboard-tab-list');
+    if (!tabList) {
+        return;
+    }
+    tabList.addEventListener('click', handleDashboardTabClick);
+    setActiveDashboardTab(currentDashboardTab);
+}
+
+function sortActivitiesNewestFirst(activities) {
+    return activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
+function normalizeTaskActivity(task, type, timestamp) {
+    return {
+        module: 'tasks',
+        type,
+        title: task.taskTitle,
+        timestamp,
+    };
+}
+
+function normalizeNoteActivity(note, type, timestamp) {
+    return {
+        module: 'notes',
+        type,
+        title: note.noteTitle,
+        timestamp,
+    };
+}
+
+function normalizeFocusActivity(session) {
+    return {
+        module: 'focus',
+        type: 'session_completed',
+        title: session.sessionName || 'Focus Session',
+        timestamp: session.completedAt,
+    };
+}
+
+function normalizeExpenseActivity(expense, type, timestamp) {
+    return {
+        module: 'expenses',
+        type,
+        title: expense.expenseTitle,
+        timestamp,
+    };
+}
+
+export function getTaskDashboardStats() {
+    return getTaskStats();
+}
+
+export function getNoteDashboardStats() {
+    return getNoteStats();
+}
+
+export function getFocusDashboardStats() {
+    const sessions = AppState.focusSessions || [];
+    const completedSessions = sessions.filter((session) => session.completedAt);
+    const totalSessions = sessions.length;
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const completedToday = completedSessions.filter((session) => {
+        return new Date(session.completedAt).toDateString() === new Date().toDateString();
+    }).length;
+    const completedThisWeek = completedSessions.filter((session) => new Date(session.completedAt) >= oneWeekAgo).length;
+    const totalFocusTime = sessions.reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
+    const focusTimeThisWeek = completedSessions
+        .filter(session => new Date(session.completedAt) >= oneWeekAgo)
+        .reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
+    const averageDuration = totalSessions > 0 ? totalFocusTime / totalSessions : 0;
+    const latestSession = completedSessions.slice().sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] || null;
+
+    return {
+        totalSessions,
+        totalFocusTime,
+        completedToday,
+        completedThisWeek,
+        focusTimeThisWeek,
+        averageDuration,
+        latestSession,
+    };
+}
+
+export function getExpenseDashboardStats() {
+    const stats = getExpenseStats();
+    const highestExpense = (AppState.expenses || []).slice().sort((a, b) => (b.expenseAmount || 0) - (a.expenseAmount || 0))[0] || null;
+    return {
+        ...stats,
+        highestExpenseTitle: highestExpense ? highestExpense.expenseTitle : 'None',
+    };
+}
+
+export function getAllDashboardStats() {
+    return {
+        tasks: getTaskDashboardStats(),
+        notes: getNoteDashboardStats(),
+        focus: getFocusDashboardStats(),
+        expenses: getExpenseDashboardStats(),
+    };
+}
+
+export function getTaskRecentActivities() {
+    const activities = [];
+    for (const task of AppState.tasks) {
+        if (task.createdAt) {
+            activities.push(normalizeTaskActivity(task, 'created', task.createdAt));
+        }
+        if (task.completedAt) {
+            activities.push(normalizeTaskActivity(task, 'completed', task.completedAt));
+        }
+        if (task.updatedAt) {
+            activities.push(normalizeTaskActivity(task, 'updated', task.updatedAt));
+        }
+    }
+    return sortActivitiesNewestFirst(activities).slice(0, 10);
+}
+
+export function getNoteRecentActivities() {
+    const activities = [];
+    for (const note of AppState.notes) {
+        if (note.createdAt) {
+            activities.push(normalizeNoteActivity(note, 'created', note.createdAt));
+        }
+        if (note.updatedAt) {
+            activities.push(normalizeNoteActivity(note, 'updated', note.updatedAt));
+        }
+    }
+    return sortActivitiesNewestFirst(activities).slice(0, 10);
+}
+
+export function getFocusRecentActivities() {
+    const activities = (AppState.focusSessions || [])
+        .filter((session) => session.completedAt)
+        .map((session) => normalizeFocusActivity(session));
+    return sortActivitiesNewestFirst(activities).slice(0, 10);
+}
+
+export function getExpenseRecentActivities() {
+    const activities = [];
+    for (const expense of AppState.expenses) {
+        if (expense.createdAt) {
+            activities.push(normalizeExpenseActivity(expense, 'created', expense.createdAt));
+        }
+        if (expense.updatedAt) {
+            activities.push(normalizeExpenseActivity(expense, 'updated', expense.updatedAt));
+        }
+    }
+    return sortActivitiesNewestFirst(activities).slice(0, 10);
+}
+
+export function getAllRecentActivities() {
+    return sortActivitiesNewestFirst([
+        ...getTaskRecentActivities(),
+        ...getNoteRecentActivities(),
+        ...getFocusRecentActivities(),
+        ...getExpenseRecentActivities(),
+    ]).slice(0, 10);
+}
+
+export function getRecentActivitiesForTab(tabName = currentDashboardTab) {
+    const selectedTab = tabName || currentDashboardTab || DEFAULT_DASHBOARD_TAB;
+    if (selectedTab === 'tasks') {
+        return getTaskRecentActivities();
+    }
+    if (selectedTab === 'notes') {
+        return getNoteRecentActivities();
+    }
+    if (selectedTab === 'focus') {
+        return getFocusRecentActivities();
+    }
+    if (selectedTab === 'expenses') {
+        return getExpenseRecentActivities();
+    }
+    return getAllRecentActivities();
+}
+
+function getActivityActionText(type) {
+    switch (type) {
+        case 'created':
+            return 'Created';
+        case 'completed':
+            return 'Completed';
+        case 'updated':
+            return 'Updated';
+        case 'session_completed':
+            return 'Focus Session Completed';
+        default:
+            return type.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+    }
+}
+
+export function getTaskInsights() {
+    return getDashboardInsights();
+}
+
+export function getNoteInsights() {
+    const stats = getNoteStats();
+    const mostRecentlyEditedNote = AppState.notes.slice()
+        .filter((note) => note.updatedAt)
+        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0] || null;
+
+    return {
+        notesCreatedToday: stats.notesCreatedToday,
+        notesUpdatedThisWeek: stats.notesUpdatedThisWeek,
+        oldestNote: stats.oldestNote,
+        latestNote: stats.latestNote,
+        mostRecentlyEditedNote,
+    };
+}
+
+export function getFocusInsights() {
+    const sessions = AppState.focusSessions || [];
+    const completedSessions = sessions.filter((session) => session.completedAt);
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const sessionsThisWeek = completedSessions.filter((session) => new Date(session.completedAt) >= oneWeekAgo).length;
+    const totalSessions = sessions.length;
+    const totalFocusTime = sessions.reduce((sum, session) => sum + (session.durationMinutes || 0), 0);
+    const averageSessionLength = totalSessions > 0 ? totalFocusTime / totalSessions : 0;
+    const longestSession = sessions.slice().sort((a, b) => (b.durationMinutes || 0) - (a.durationMinutes || 0))[0] || null;
+    const latestSession = completedSessions.slice().sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] || null;
+
+    return {
+        totalSessions,
+        sessionsThisWeek,
+        longestSession,
+        latestSession,
+        totalFocusTime,
+        averageSessionLength,
+    };
+}
+
+export function getExpenseInsights() {
+    const stats = getExpenseStats();
+    const expenses = AppState.expenses || [];
+    const highestExpense = expenses.slice().sort((a, b) => (b.expenseAmount || 0) - (a.expenseAmount || 0))[0] || null;
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const spendingThisWeek = expenses.filter((expense) => {
+        if (!expense.expenseDate) return false;
+        const expenseDate = new Date(expense.expenseDate);
+        return expenseDate >= oneWeekAgo;
+    }).reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0);
+
+    return {
+        totalAmount: stats.totalAmount,
+        thisMonthAmount: stats.thisMonthAmount,
+        topCategory: stats.topCategory,
+        highestExpense,
+        averageExpense: stats.totalCount > 0 ? stats.totalAmount / stats.totalCount : 0,
+        spendingThisWeek,
+    };
+}
+
+export function getAllInsights() {
+    return {
+        tasks: getTaskInsights(),
+        notes: getNoteInsights(),
+        focus: getFocusInsights(),
+        expenses: getExpenseInsights(),
+    };
+}
+
+export function getInsightsForTab(tabName = currentDashboardTab) {
+    const selectedTab = tabName || currentDashboardTab || DEFAULT_DASHBOARD_TAB;
+    if (selectedTab === 'tasks') {
+        return getTaskInsights();
+    }
+    if (selectedTab === 'notes') {
+        return getNoteInsights();
+    }
+    if (selectedTab === 'focus') {
+        return getFocusInsights();
+    }
+    if (selectedTab === 'expenses') {
+        return getExpenseInsights();
+    }
+
+    const allInsights = getAllInsights();
+    const tasks = allInsights.tasks;
+    const notes = allInsights.notes;
+    const focus = getFocusDashboardStats();
+    const expenses = allInsights.expenses;
+
+    const taskActivityThisWeek = tasks.tasksCompletedThisWeek || 0;
+    const focusHoursThisWeek = focus.focusTimeThisWeek || 0;
+
+    return {
+        mostActiveModuleThisWeek: (() => {
+            const counts = {
+                tasks: taskActivityThisWeek,
+                notes: (notes.notesCreatedToday || 0) + (notes.notesUpdatedThisWeek || 0),
+                focus: focus.completedThisWeek || 0,
+                expenses: (expenses.totalCount || 0),
+            };
+            const winner = Object.keys(counts).reduce((best, key) => {
+                return counts[key] > counts[best] ? key : best;
+            }, 'tasks');
+            return winner.charAt(0).toUpperCase() + winner.slice(1);
+        })(),
+        highestSpendingCategory: expenses.topCategory || 'N/A',
+        totalFocusHoursThisWeek: focusHoursThisWeek,
+        tasksCompletedThisWeek: taskActivityThisWeek,
+    };
+}
+
+function getActivityActionLabel(type) {
+    switch (type) {
+        case 'created':
+            return 'Created at';
+        case 'completed':
+        case 'session_completed':
+            return 'Completed at';
+        case 'updated':
+            return 'Updated at';
+        default:
+            return 'Activity at';
+    }
+}
+
+export function renderRecentActivities(tabName = currentDashboardTab) {
+    const activityContainer = document.getElementById('recent-activity-list');
+    if (!activityContainer) {
+        return;
+    }
+    const activities = getRecentActivitiesForTab(tabName);
+    if (activities.length === 0) {
+        activityContainer.innerHTML = '<p class="no-activity">No recent activity for this tab.</p>';
+        return;
+    }
+
+    const icons = {
+        tasks: 'âœ…',
+        notes: 'ðŸ“Œ',
+        focus: 'ðŸŽ¯',
+        expenses: 'ðŸ’³'
+    };
+
+    const activityHTML = activities.map(activity => {
+        const actionLabel = getActivityActionLabel(activity.type);
+        const moduleLabel = activity.module
+            ? `<span class="activity-module activity-module--${escapeHTML(activity.module)}">${escapeHTML(activity.module)}</span>`
+            : '';
+        
+        let dateText = 'Unknown Date';
+        if (activity.timestamp) {
+            const dateObj = new Date(activity.timestamp);
+            const timeStr = dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            dateText = `${timeStr} on ${dateStr}`;
+        }
+        
+        const icon = icons[activity.module] || 'ðŸ””';
+
+        return `
+            <div class="activity-item" data-module="${escapeHTML(activity.module)}">
+                <div class="activity-item-main">
+                    <div class="activity-icon-wrapper">
+                        ${icon}
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${escapeHTML(activity.title)}</div>
+                        <div class="activity-meta">
+                            <span class="activity-meta-label">${escapeHTML(actionLabel)}</span>
+                            <span class="activity-time">${escapeHTML(dateText)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-badge-wrapper">
+                    ${moduleLabel}
+                </div>
+            </div>
+        `;
+    }).join('');
+    activityContainer.innerHTML = activityHTML;
+}
+
+
+export function getDashboardInsights() {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const tasksCreatedThisWeek = AppState.tasks.filter(task => {
+        if (!task.createdAt) return false;
+        const createdDate = new Date(task.createdAt);
+        return createdDate >= oneWeekAgo;
+    }).length;
+
+    const tasksCompletedThisWeek = AppState.tasks.filter(task => {
+        if (!task.isComplete) return false;
+        const completedDate = new Date(task.completedAt);
+        return completedDate >= oneWeekAgo;
+    }).length;
+
+    const oldestPendingTask = AppState.tasks
+        .filter(task => !task.isComplete)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
+
+    const latestCompletedTask = AppState.tasks
+        .filter(task => task.isComplete)
+        .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0];
+
+    return {
+        tasksCreatedThisWeek,
+        tasksCompletedThisWeek,
+        oldestPendingTask,
+        latestCompletedTask
+    };
+}
+
+
+export function renderDashboardInsights(tabName = currentDashboardTab) {
+    const insights = getInsightsForTab(tabName);
+    const insightsContainer = document.getElementById('dashboard-insights-list');
+    if (!insightsContainer) {
+        return;
+    }
+
+    if (!insights || Object.keys(insights).length === 0) {
+        insightsContainer.innerHTML = '<p class="no-insights">No insights available yet.</p>';
+        return;
+    }
+
+    const insightItems = [];
+
+    if (tabName === 'tasks') {
+        insightItems.push(
+            { label: 'Tasks Created This Week', value: formatNumber(insights.tasksCreatedThisWeek) },
+            { label: 'Tasks Completed This Week', value: formatNumber(insights.tasksCompletedThisWeek) },
+            { label: 'Oldest Pending Task', value: insights.oldestPendingTask ? insights.oldestPendingTask.taskTitle : 'None' },
+            { label: 'Latest Completed Task', value: insights.latestCompletedTask ? insights.latestCompletedTask.taskTitle : 'None' },
+        );
+    } else if (tabName === 'notes') {
+        insightItems.push(
+            { label: 'Notes Created Today', value: formatNumber(insights.notesCreatedToday) },
+            { label: 'Notes Updated This Week', value: formatNumber(insights.notesUpdatedThisWeek) },
+            { label: 'Most Recently Edited Note', value: insights.mostRecentlyEditedNote ? insights.mostRecentlyEditedNote.noteTitle : 'None' },
+            { label: 'Oldest Note', value: insights.oldestNote ? insights.oldestNote.noteTitle : 'None' },
+        );
+    } else if (tabName === 'focus') {
+        insightItems.push(
+            { label: 'Focus Hours This Week', value: formatMinutes(insights.totalFocusTime ? Math.round(insights.totalFocusTime) : 0) },
+            { label: 'Longest Session', value: insights.longestSession ? `${insights.longestSession.sessionName || 'Focus Session'} (${formatMinutes(insights.longestSession.durationMinutes)})` : 'None' },
+            { label: 'Average Session Length', value: formatMinutes(Math.round(insights.averageSessionLength || 0)) },
+            { label: 'Sessions This Week', value: formatNumber(insights.sessionsThisWeek) },
+        );
+    } else if (tabName === 'expenses') {
+        insightItems.push(
+            { label: 'Highest Expense', value: insights.highestExpense ? insights.highestExpense.expenseTitle : 'None' },
+            { label: 'Top Category', value: insights.topCategory || 'N/A' },
+            { label: 'Spending This Week', value: formatCurrency(insights.spendingThisWeek || 0) },
+            { label: 'Spending This Month', value: formatCurrency(insights.thisMonthAmount || 0) },
+        );
+    } else {
+        insightItems.push(
+            { label: 'Most Active Module This Week', value: insights.mostActiveModuleThisWeek || 'N/A' },
+            { label: 'Highest Spending Category', value: insights.highestSpendingCategory || 'N/A' },
+            { label: 'Total Focus Hours This Week', value: formatMinutes(Math.round(insights.totalFocusHoursThisWeek || 0)) },
+            { label: 'Tasks Completed This Week', value: formatNumber(insights.tasksCompletedThisWeek) },
+        );
+    }
+
+    insightsContainer.innerHTML = insightItems.map(item => `
+        <div class="insight-item">
+            <h3>${escapeHTML(item.label)}</h3>
+            <p>${escapeHTML(item.value)}</p>
+        </div>
+    `).join('');
+}
+
+
+
+
+
+
+export function initDashboardPage() {
+    const tabList = document.getElementById('dashboard-tab-list');
+    if (tabList) {
+        initDashboardTabs();
+    } else {
+        renderDashboardStats();
+        renderRecentActivities();
+        renderDashboardInsights();
+    }
+}
+
+
+
+=== expenses.js ===
+import { AppState } from "./state.js";
+import { validateRequired, formatCurrency, formatDate, escapeHTML } from "./utils.js";
+import { getSettingMonthlyBudget } from "./settings.js";
+
+let currentFilter = 'all';
+let editingExpenseId = null;
+
+export function cancelEditingExpense() {
+    editingExpenseId = null;
+    const form = document.getElementById("expense-form");
+    if (form) {
+        form.reset();
+    }
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Add a New Expense";
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Add Expense";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = true;
+    }
+
+    // Hide modal overlay
+    const modal = document.getElementById("add-expense-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
+
+export function initExpensesPage() {
+    const form = document.getElementById("expense-form");
+    const expenseListContainer = document.getElementById("expense-list-container");
+    const filterSelect = document.getElementById("expense-category-filter");
+    const breakdownContainer = document.getElementById("category-breakdown-container");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+
+    // Add New Task trigger button click handler
+    const openModalBtn = document.getElementById("open-add-expense-btn");
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            editingExpenseId = null;
+            const formEl = document.getElementById("expense-form");
+            if (formEl) {
+                formEl.reset();
+            }
+            const titleText = document.getElementById("modal-title-text");
+            if (titleText) {
+                titleText.textContent = "Add a New Expense";
+            }
+            const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Expense";
+            }
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+
+            const modal = document.getElementById("add-expense-modal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+                const titleInput = document.getElementById("expense-title");
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }
+        });
+    }
+
+    // Modal Close buttons click handlers
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            cancelEditingExpense();
+        });
+    }
+
+    const modalOverlay = document.getElementById("add-expense-modal");
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                cancelEditingExpense();
+            }
+        });
+    }
+
+    // Dismiss modal on Escape key
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            const modal = document.getElementById("add-expense-modal");
+            if (modal && modal.style.display === "flex") {
+                cancelEditingExpense();
+            }
+        }
+    });
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", () => {
+            cancelEditingExpense();
+        });
+    }
+    if (!form || !expenseListContainer || !filterSelect) {
+        return;
+    }
+    renderExpenseList(expenseListContainer, currentFilter);
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        handleFormSubmit(expenseListContainer);
+    });
+    filterSelect.addEventListener("change", (event) => {
+        const filter = event.target.value;
+        currentFilter = filter;
+        renderExpenseList(expenseListContainer, currentFilter);
+    });
+    expenseListContainer.addEventListener("click", (event) => {
+        handleExpenseListClick(event, expenseListContainer);
+    });
+    renderCategoryBreakdown(breakdownContainer);
+}
+
+export function handleFormSubmit(container) {
+    try {
+        const formData = getExpenseFormData();
+        if (editingExpenseId) {
+            updateExpense(editingExpenseId, formData);
+            editingExpenseId = null;
+            const submitBtn = document.querySelector("#expense-form button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Expense";
+            }
+        } else {
+            createExpense(formData);
+        }
+        document.getElementById("expense-form").reset();
+        renderExpenseList(container, currentFilter);
+
+        // Hide modal overlay
+        const modal = document.getElementById("add-expense-modal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+        }
+    } catch (error) {
+        alert(`Error handling form submit: ${error.message}`);
+    }
+}
+
+export function updateExpense(expenseId, expenseData) {
+    const expense = AppState.expenses.find((e) => e.expenseId === expenseId);
+    if (!expense) {
+        throw new Error("Expense not found");
+    }
+    if (!expenseData || typeof expenseData !== "object") {
+        throw new Error("Invalid expense data");
+    }
+    if (!validateRequired(expenseData.title)) {
+        throw new Error("Expense title is required");
+    }
+    if (isNaN(parseFloat(expenseData.amount)) || parseFloat(expenseData.amount) <= 0) {
+        throw new Error("Expense amount must be a valid positive number");
+    }
+    expense.expenseTitle = expenseData.title;
+    expense.expenseAmount = parseFloat(expenseData.amount);
+    expense.expenseCategory = expenseData.category;
+    expense.expenseDate = expenseData.expenseDate;
+    expense.updatedAt = new Date().toISOString();
+    AppState.save();
+    return expense;
+}
+
+export function startEditingExpense(expenseId) {
+    const expense = AppState.expenses.find((e) => e.expenseId === expenseId);
+    if (!expense) {
+        throw new Error("Expense not found");
+    }
+    editingExpenseId = expenseId;
+    document.getElementById("expense-title").value = expense.expenseTitle;
+    document.getElementById("expense-amount").value = expense.expenseAmount;
+    document.getElementById("expense-category").value = expense.expenseCategory;
+    document.getElementById("expense-date").value = expense.expenseDate;
+    // Set modal text
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Edit Expense";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = false;
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Update Expense";
+    }
+    // Show modal overlay
+    const modal = document.getElementById("add-expense-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
+    }
+}
+
+export function createExpense(expenseData) {
+    if (!expenseData || typeof expenseData !== "object") {
+        throw new Error("Invalid expense data");
+    }
+    if (!validateRequired(expenseData.title)) {
+        throw new Error("Expense title is required");
+    }
+    if (isNaN(parseFloat(expenseData.amount)) || parseFloat(expenseData.amount) <= 0) {
+        throw new Error("Expense amount must be a valid positive number");
+    }
+    const expenseId = crypto.randomUUID();
+    const newExpense = {
+        expenseId: expenseId,
+        expenseTitle: expenseData.title,
+        expenseAmount: parseFloat(expenseData.amount),
+        expenseCategory: expenseData.category,
+        expenseDate: expenseData.expenseDate,
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+    };
+    AppState.expenses.push(newExpense);
+    AppState.save();
+    return newExpense;
+}
+
+export function deleteExpense(expenseId) {
+    if (!validateRequired(expenseId)) {
+        throw new Error("Expense ID is required for deletion");
+    }
+    const exists = AppState.expenses.some((expense) => expense.expenseId === expenseId);
+    if (!exists) {
+        throw new Error("Expense not found");
+    }
+    AppState.expenses = AppState.expenses.filter((expense) => expense.expenseId !== expenseId);
+    AppState.save();
+    return true;
+}
+
+export function getExpenseFormData() {
+    const titleInput = document.getElementById("expense-title");
+    const amountInput = document.getElementById("expense-amount");
+    const categoryInput = document.getElementById("expense-category");
+    const dateInput = document.getElementById("expense-date");
+    if (!titleInput || !amountInput || !categoryInput || !dateInput) {
+        throw new Error("All fields are required");
+    }
+    const title = titleInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    if (!validateRequired(title)) {
+        throw new Error("Expense title is required");
+    }
+    if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        throw new Error("Expense amount must be a valid positive number");
+    }
+    const category = categoryInput.value;
+    const date = dateInput.value;
+    return {
+        title: title,
+        amount: amount,
+        category: category,
+        expenseDate: date,
+    };
+}
+
+export function getExpenseStats() {
+    const expenses = AppState.expenses;
+    const totalAmount = expenses.reduce((total, expense) => total + expense.expenseAmount, 0);
+    const totalCount = expenses.length;
+
+    const thisMonthAmount = expenses.filter((expense) => {
+        if (!expense.expenseDate) return false;
+        const [year, month, day] = expense.expenseDate.split("-").map(Number);
+        const expenseDate = new Date(year, month - 1, day);
+        const currentDate = new Date();
+        return expenseDate.getMonth() === currentDate.getMonth() && expenseDate.getFullYear() === currentDate.getFullYear();
+    }).reduce((total, expense) => total + expense.expenseAmount, 0);
+
+    const topCategory = expenses.reduce((topCategory, expense) => {
+        const category = expense.expenseCategory;
+        if (topCategory[category]) {
+            topCategory[category]++;
+        } else {
+            topCategory[category] = 1;
+        }
+        return topCategory;
+    }, {});
+
+    const categoryExpenses = expenses.reduce((categoryExpenses, expense) => {
+        const category = expense.expenseCategory;
+        if (categoryExpenses[category]) {
+            categoryExpenses[category] += expense.expenseAmount;
+        } else {
+            categoryExpenses[category] = expense.expenseAmount;
+        }
+        return categoryExpenses;
+    }, {});
+
+    const topCategoryName = Object.keys(topCategory).length > 0 ? Object.keys(topCategory).reduce((a, b) => topCategory[a] > topCategory[b] ? a : b) : "N/A";
+    const topCategoryCount = topCategory[topCategoryName];
+    const topCategoryPercentage = totalCount > 0 ? ((topCategoryCount / totalCount) * 100).toFixed(2) : 0;
+    return {
+        totalAmount: totalAmount,
+        thisMonthAmount: thisMonthAmount,
+        topCategory: topCategoryName || "N/A",
+        topCategoryCount: topCategoryCount || 0,
+        topCategoryPercentage: topCategoryPercentage || 0,
+        totalCount: totalCount,
+        categoryBreakdown: categoryExpenses,
+    };
+}
+
+
+export function renderExpenseStats() {
+    const stats = getExpenseStats();
+    const totalAmountEl = document.getElementById("expense-total-amount");
+    const thisMonthAmountEl = document.getElementById("expense-this-month");
+    const topCategoryEl = document.getElementById("expense-top-category");
+    const totalCountEl = document.getElementById("expense-total-count");
+    const budgetLimitEl = document.getElementById("expense-budget-limit");
+    const budgetProgressEl = document.getElementById("expense-budget-progress-fill");
+
+    if (!totalAmountEl || !thisMonthAmountEl || !topCategoryEl || !totalCountEl) {
+        return;
+    }
+    totalAmountEl.textContent = formatCurrency(stats.totalAmount);
+    thisMonthAmountEl.textContent = formatCurrency(stats.thisMonthAmount);
+    topCategoryEl.textContent = stats.topCategory;
+    totalCountEl.textContent = stats.totalCount;
+
+    const budget = getSettingMonthlyBudget();
+    if (budgetLimitEl) budgetLimitEl.textContent = formatCurrency(budget);
+    if (budgetProgressEl) {
+        const pct = Math.min(100, (stats.thisMonthAmount / budget) * 100);
+        budgetProgressEl.style.width = `${pct}%`;
+        budgetProgressEl.style.backgroundColor = pct >= 100 ? 'var(--danger)' : 'var(--expense-accent)';
+    }
+}
+
+export function renderExpenseList(container, filter = "all") {
+    if (!container || !(container instanceof HTMLElement)) {
+        throw new Error("Valid container element is required");
+    }
+    let expenses = [...AppState.expenses].sort((a, b) => {
+        const dateDiff = new Date(b.expenseDate) - new Date(a.expenseDate);
+        // Primary sort: by expense date descending
+        if (dateDiff !== 0) return dateDiff;
+        // Tiebreaker: if same date, sort by creation time descending (newest added = first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    if (filter !== "all") {
+        expenses = expenses.filter((expense) => expense.expenseCategory === filter);
+    }
+    if (expenses.length === 0) {
+        container.innerHTML = "<div class='empty-state'><h3>No expenses found</h3><p>Add an expense to get started!</p></div>";
+        renderExpenseStats();
+        return;
+    }
+    const expensesHTML = expenses.map((expense) => `
+        <article class="expense-card" data-expense-id="${escapeHTML(expense.expenseId)}">
+            <h3 class="expense-title">${escapeHTML(expense.expenseTitle)}</h3>
+            <p class="expense-amount">${formatCurrency(expense.expenseAmount)}</p>
+            <p class="expense-category">${escapeHTML(expense.expenseCategory)}</p>
+            <p class="expense-date">${formatDate(expense.expenseDate)}</p>
+            <div class="expense-actions">
+                <button type="button" class="edit-btn" data-action="edit">Edit</button>
+                <button type="button" class="delete-btn" data-action="delete">Delete</button>
+            </div>
+        </article>
+    `).join('');
+    container.innerHTML = expensesHTML;
+    const breakdownContainer = document.getElementById("category-breakdown-container");
+    if (breakdownContainer) renderCategoryBreakdown(breakdownContainer);
+    renderExpenseStats();
+}
+
+export function handleExpenseListClick(event, container) {
+    if (!container || !(container instanceof HTMLElement)) {
+        throw new Error("Valid container element is required");
+    }
+    const action = event.target.dataset.action;
+    if (!action) {
+        return;
+    }
+    const expenseCard = event.target.closest("[data-expense-id]");
+    if (!expenseCard) return;
+    const expenseId = expenseCard.dataset.expenseId;
+    try {
+        if (action === "delete") {
+            deleteExpense(expenseId);
+            renderExpenseList(container, currentFilter);
+        } else if (action === "edit") {
+            startEditingExpense(expenseId);
+        }
+    } catch (error) {
+        alert(`Error performing action on expense: ${error.message}`);
+    }
+}
+
+export function renderCategoryBreakdown(container) {
+    if (!container || !(container instanceof HTMLElement)) {
+        return;
+    }
+    const expenses = AppState.expenses;
+    const currentDate = new Date();
+
+    // Filter expenses for this month
+    const thisMonthExpenses = expenses.filter((expense) => {
+        if (!expense.expenseDate) return false;
+        const [year, month, day] = expense.expenseDate.split("-").map(Number);
+        const expenseDate = new Date(year, month - 1, day);
+        return expenseDate.getMonth() === currentDate.getMonth() &&
+            expenseDate.getFullYear() === currentDate.getFullYear();
+    });
+
+    if (thisMonthExpenses.length === 0) {
+        container.innerHTML = "<div class='empty-state'><p>No expenses recorded this month.</p></div>";
+        return;
+    }
+
+    const thisMonthTotal = thisMonthExpenses.reduce((sum, exp) => sum + exp.expenseAmount, 0);
+
+    const breakdown = thisMonthExpenses.reduce((acc, exp) => {
+        const cat = exp.expenseCategory || "Other";
+        acc[cat] = (acc[cat] || 0) + exp.expenseAmount;
+        return acc;
+    }, {});
+
+    // Sort categories by amount descending
+    const sortedCategories = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
+
+    const breakdownHTML = sortedCategories.map(([category, amount]) => {
+        const percentage = thisMonthTotal > 0 ? ((amount / thisMonthTotal) * 100).toFixed(1) : 0;
+        return `
+            <div class="category-breakdown-item">
+                <div class="category-info">
+                    <span class="category-name"><strong>${escapeHTML(category)}</strong></span>
+                    <span class="category-values">${formatCurrency(amount)} (${percentage}%)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    container.innerHTML = breakdownHTML;
+}
+
+
+
+=== focus.js ===
+import { AppState } from "./state.js";
+import { escapeHTML } from "./utils.js";
+import { storageGet, storageSet } from "./storage.js";
+import { getSettingFocusDuration } from "./settings.js";
+
+
+// Duration is read from settings at page load; can be changed via Settings page
+function getSessionDuration() {
+    return getSettingFocusDuration();
+}
+
+let SESSION_DURATION_MINUTES = getSessionDuration();
+let timeRemaining = SESSION_DURATION_MINUTES * 60; // seconds
+let timerInterval = null;
+let isRunning = false;
+let sessionStartedAt = null;
+let sessionEndTime = null; // wall-clock end time in ms (fixes drift)
+
+const CIRCLE_RADIUS = 115;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+
+function saveFocusState() {
+    storageSet("app_focus_timer_state", {
+        timeRemaining,
+        isRunning,
+        sessionStartedAt,
+        sessionEndTime
+    });
+}
+
+
+
+export function initFocusPage() {
+    const startBtn = document.getElementById('start-focus-btn');
+    const resetBtn = document.getElementById('reset-focus-btn');
+    const pauseBtn = document.getElementById('pause-focus-btn');
+    if (!startBtn || !resetBtn || !pauseBtn) {
+        return;
+    }
+    startBtn.addEventListener('click', startFocusSession);
+    resetBtn.addEventListener('click', resetFocusSession);
+    pauseBtn.addEventListener('click', pauseFocusSession);
+
+    const circle = document.getElementById('progress-ring-circle');
+    if (circle) {
+        circle.style.strokeDasharray = `${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`;
+        circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+    }
+
+    // Re-read duration from settings on each page load
+    SESSION_DURATION_MINUTES = getSessionDuration();
+
+    const savedState = storageGet("app_focus_timer_state");
+    if (savedState && savedState.timeRemaining !== null && savedState.timeRemaining !== undefined) {
+        isRunning = savedState.isRunning;
+        timeRemaining = savedState.timeRemaining;
+        sessionStartedAt = savedState.sessionStartedAt;
+        sessionEndTime = savedState.sessionEndTime;
+
+        if (isRunning && sessionEndTime) {
+            // Resync remaining time based on wall clock
+            timeRemaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+            if (timeRemaining > 0) {
+                // Resume interval
+                timerInterval = setInterval(focusTick, 1000);
+            } else {
+                isRunning = false;
+                sessionEndTime = null;
+                saveCompletedSession();
+            }
+        }
+    } else {
+        // No saved state â€” initialise fresh from settings
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
+    }
+
+    updateTimerDisplay();
+    renderFocusHistory();
+}
+
+function focusTick() {
+    const remaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+    timeRemaining = remaining;
+    saveFocusState();
+
+    updateTimerDisplay();
+
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        sessionEndTime = null;
+        saveFocusState();
+        saveCompletedSession();
+    }
+}
+
+
+export function updateTimerDisplay() {
+    const timerDisplay = document.getElementById('focus-timer-display');
+    if (!timerDisplay) {
+        return;
+    }
+    const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+    if (timeRemaining > 0) {
+        timerDisplay.innerHTML = `<p>${minutes}:${seconds}</p>`;
+    }
+    else {
+        timerDisplay.innerHTML = "<p>00:00</p><p>Session Complete!</p>";
+    }
+    if (timeRemaining <= 5 * 60) {
+        timerDisplay.classList.add('warning');
+    }
+    else {
+        timerDisplay.classList.remove('warning');
+    }
+
+    const circle = document.getElementById('progress-ring-circle');
+    if (circle) {
+        const totalSeconds = SESSION_DURATION_MINUTES * 60;
+        const progress = timeRemaining / totalSeconds;
+        // Calculate offset (progress is from 1 to 0, so offset goes from 0 to circumference)
+        const offset = CIRCLE_CIRCUMFERENCE - (progress * CIRCLE_CIRCUMFERENCE);
+        circle.style.strokeDashoffset = offset;
+    }
+}
+
+
+export function startFocusSession() {
+    if (isRunning) {
+        return;
+    }
+    isRunning = true;
+
+    if (!sessionStartedAt) {
+        sessionStartedAt = new Date().toISOString();
+    }
+
+    // Wall-clock fix: record when the session should end
+    sessionEndTime = Date.now() + timeRemaining * 1000;
+    saveFocusState();
+
+    timerInterval = setInterval(focusTick, 1000);
+}
+
+export function pauseFocusSession() {
+    if (!isRunning) {
+        return;
+    }
+    isRunning = false;
+    clearInterval(timerInterval);
+    // timeRemaining is already accurate from last tick; sessionEndTime is no longer valid
+    sessionEndTime = null;
+    saveFocusState();
+}
+
+export function resetFocusSession() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    SESSION_DURATION_MINUTES = getSessionDuration();
+    timeRemaining = SESSION_DURATION_MINUTES * 60;
+    sessionStartedAt = null;
+    sessionEndTime = null;
+    saveFocusState();
+    updateTimerDisplay();
+}
+
+
+export function saveCompletedSession() {
+    const sessionNameInput = document.getElementById('session-name');
+    const sessionName = sessionNameInput ? sessionNameInput.value.trim() : "Unnamed Session";
+    const completedSession = {
+        sessionId: crypto.randomUUID(),
+        sessionName,
+        durationMinutes: SESSION_DURATION_MINUTES,
+        startedAt: sessionStartedAt,
+        completedAt: new Date().toISOString()
+    };
+    AppState.focusSessions.push(completedSession);
+    AppState.save();
+    sessionStartedAt = null;
+    sessionNameInput.value = "";
+    renderFocusHistory();
+}
+
+
+export function renderFocusHistory() {
+    const historyContainer = document.getElementById('focus-history-list');
+    if (!historyContainer) {
+        return;
+    }
+    const sessions = [...AppState.focusSessions]
+        .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+    if (sessions.length === 0) {
+        historyContainer.innerHTML = "<p>No focus sessions completed yet.</p>";
+        return;
+    }
+    const historyHTML = sessions.map(session => `
+        
+        <div class="focus-session-item" data-focus-id="${escapeHTML(session.sessionId)}">
+            <div class="focus-card-header">
+                <h3 class="focus-title">${escapeHTML(session.sessionName)}</h3>
+            </div>
+            <div class="focus-card-body">
+                <p class="focus-content-text">Duration : ${escapeHTML(String(session.durationMinutes))}</p>
+            </div>
+            <div class="focus-card-footer">
+                <div class="focus-meta">
+                    <span class="focus-date-text">Started on : ${new Date(session.startedAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric' })} at ${new Date(session.startedAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</span>
+                    <span class="focus-date-text">Completed on : ${new Date(session.completedAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric' })} at ${new Date(session.completedAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    historyContainer.innerHTML = historyHTML;
+}
+
+
+
+=== home.js ===
+import { getTaskStats } from "./tasks.js";
+import { AppState } from "./state.js";
+import { storageGet, storageSet } from "./storage.js";
+import { WEATHER_API_KEY } from "./config.js";
+import { escapeHTML, getDaysDiff, formatCurrency } from "./utils.js";
+import { getSettingFocusDuration, getSettingMonthlyBudget } from "./settings.js";
+
+
+
+export function initHomePage() {
+    renderHomeStats();
+    renderFocusSessionsStat();
+    renderUrgentTasks();
+    renderWeathercard();
+    renderQuoteCard();
+    renderRecentExpenses();
+    initHomeTimer();
+    initQuickNotes();
+}
+
+
+
+export function renderHomeStats() {
+    const stats = getTaskStats();
+    const totalTasksEl = document.getElementById("home-total-tasks");
+    const completedTodayEl = document.getElementById("home-completed-today");
+    const pendingTasksEl = document.getElementById("home-pending-tasks");
+
+    if (!totalTasksEl || !completedTodayEl || !pendingTasksEl) {
+        return;
+    }
+
+    totalTasksEl.textContent = stats.totalTasks;
+    completedTodayEl.textContent = stats.completedToday;
+    pendingTasksEl.textContent = stats.pendingTasks;
+}
+
+export function renderFocusSessionsStat() {
+    const focusEl = document.getElementById("home-focus-sessions");
+    if (!focusEl) return;
+    focusEl.textContent = (AppState.focusSessions || []).length;
+}
+
+export function renderUrgentTasks() {
+    const container = document.getElementById("urgent-task-cards-container");
+    if (!container) return;
+
+    const today = new Date();
+    // Show tasks that are incomplete AND (priority is high OR due date is today)
+    const urgentTasks = (AppState.tasks || [])
+        .filter(task => {
+            if (task.isComplete) return false;
+            const daysLeft = task.dueDate ? getDaysDiff(task.dueDate, today) : null;
+            const isDueToday = daysLeft === 0;
+            return task.priority === 'high' || isDueToday;
+        })
+        .sort((a, b) => {
+            // Sort: overdue first, then by due date, then no-date tasks last
+            const aDiff = a.dueDate ? getDaysDiff(a.dueDate, today) : 999;
+            const bDiff = b.dueDate ? getDaysDiff(b.dueDate, today) : 999;
+            if (aDiff !== bDiff) return aDiff - bDiff;
+            // if same date, high priority first
+            if (a.priority === 'high' && b.priority !== 'high') return -1;
+            if (a.priority !== 'high' && b.priority === 'high') return 1;
+            return 0;
+        })
+        .slice(0, 5); // Show max 5
+
+    if (urgentTasks.length === 0) {
+        container.innerHTML = `
+            <div class="urgent-task-cards">
+                <span></span>
+                <div style="color: var(--text-muted); font-style: italic;">No priority tasks â€” you're all caught up!</div>
+                <div></div>
+                <div></div>
+            </div>`;
+        return;
+    }
+
+    const tasksHTML = urgentTasks.map(task => {
+        const daysLeft = task.dueDate ? getDaysDiff(task.dueDate, today) : null;
+        let dueLabel = 'No due date';
+        if (daysLeft !== null) {
+            if (daysLeft < 0) dueLabel = `Overdue (${Math.abs(daysLeft)}d)`;
+            else if (daysLeft === 0) dueLabel = 'Today';
+            else if (daysLeft === 1) dueLabel = 'Tomorrow';
+            else dueLabel = `In ${daysLeft}d`;
+        }
+        const priorityClass = task.priority === 'high' ? 'text-danger' : 'text-warning';
+        return `
+            <div class="urgent-task-cards">
+                <input type="checkbox" data-task-id="${escapeHTML(task.taskId)}" class="home-urgent-task-checkbox" title="Mark as complete">
+                <div>${escapeHTML(task.taskTitle)}</div>
+                <div class="${priorityClass}"><span class="task-priority-badge">${escapeHTML(task.priority)}</span></div>
+                <div>${escapeHTML(dueLabel)}</div>
+            </div>`;
+    }).join('');
+
+    container.innerHTML = tasksHTML;
+
+    // Add event listeners to checkboxes
+    const checkboxes = container.querySelectorAll('.home-urgent-task-checkbox');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                const taskId = e.target.getAttribute('data-task-id');
+                completeTaskFromHome(taskId);
+            }
+        });
+    });
+}
+
+function completeTaskFromHome(taskId) {
+    if (!AppState.tasks) return;
+    const task = AppState.tasks.find(t => t.taskId === taskId);
+    if (task) {
+        task.isComplete = true;
+        AppState.save();
+        renderUrgentTasks();
+        renderHomeStats();
+    }
+}
+
+export function renderRecentExpenses() {
+    const container = document.getElementById("home-expense-list-container");
+    const totalEl = document.getElementById("home-expenses-total");
+    const progressFillEl = document.getElementById("home-expenses-progress-fill");
+
+    if (!container) return;
+
+    const expenses = (AppState.expenses || []);
+    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
+
+    // Calculate total spent in current month
+    const today = new Date();
+    const firstDateOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    const monthlySpent = expenses.reduce((acc, curr) => {
+        const expenseDate = new Date(curr.expenseDate);
+        if (expenseDate >= firstDateOfMonth && expenseDate <= today) {
+            return acc + parseFloat(curr.expenseAmount);
+        }
+        return acc;
+    }, 0);
+
+    if (totalEl) {
+        totalEl.textContent = formatCurrency(monthlySpent);
+    }
+
+    if (progressFillEl) {
+        const budget = getSettingMonthlyBudget();
+        const percentage = Math.min(100, (monthlySpent / budget) * 100);
+        progressFillEl.style.width = `${percentage}%`;
+    }
+
+    // Update the budget label on the home page if present
+    const budgetLimitEl = document.getElementById("home-expenses-budget-limit");
+    if (budgetLimitEl) {
+        budgetLimitEl.textContent = formatCurrency(getSettingMonthlyBudget());
+    }
+
+    const recent = sortedExpenses.slice(0, 3);
+    if (recent.length === 0) {
+        container.innerHTML = `
+            <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding: 16px; background: var(--hover-bg); border-radius: 8px; text-align: center; border: 1px solid var(--card-border);">
+                No recent expenses logged.
+            </div>`;
+        return;
+    }
+
+    const categoryIcons = {
+        food: "ðŸ”",
+        transport: "ðŸš—",
+        utilities: "âš¡",
+        entertainment: "ðŸŽ¬",
+        shopping: "ðŸ›’",
+        housing: "ðŸ ",
+        health: "âš•ï¸",
+        education: "ðŸŽ“",
+        other: "ðŸ’¸"
+    };
+
+    container.innerHTML = recent.map(exp => {
+        const cat = exp.expenseCategory ? exp.expenseCategory.toLowerCase() : "other";
+        const icon = categoryIcons[cat] || "ðŸ’¸";
+        const formattedDate = exp.expenseDate ? new Date(exp.expenseDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+        return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--card-border);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--hover-bg); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        ${icon}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${escapeHTML(exp.expenseTitle)}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                            ${escapeHTML(exp.expenseCategory.charAt(0).toUpperCase() + exp.expenseCategory.slice(1))} &bull; ${escapeHTML(formattedDate)}
+                        </div>
+                    </div>
+                </div>
+                <div style="font-weight: 700; color: var(--expense-accent); font-size: 0.95rem;">
+                    -${formatCurrency(exp.expenseAmount)}
+                </div>
+            </div>`;
+    }).join("");
+}
+
+let homeTimeRemaining = 25 * 60; // 25 minutes
+let homeTimerInterval = null;
+let homeTimerIsRunning = false;
+let homeSessionStartedAt = null;
+let homeSessionEndTime = null;
+
+export function initHomeTimer() {
+    const display = document.getElementById("home-timer-display");
+    const startBtn = document.getElementById("home-timer-start-btn");
+    const pauseBtn = document.getElementById("home-timer-pause-btn");
+    const resetBtn = document.getElementById("home-timer-reset-btn");
+    const nameInput = document.getElementById("home-timer-session-name");
+    const circle = document.getElementById("home-progress-ring-circle");
+
+    if (!display || !startBtn || !pauseBtn || !resetBtn) return;
+
+    const SESSION_DURATION_MINUTES = getSettingFocusDuration();
+    const CIRCLE_RADIUS = 115;
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+
+    let timeRemaining = SESSION_DURATION_MINUTES * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let sessionStartedAt = null;
+    let sessionEndTime = null;
+
+    if (circle) {
+        circle.style.strokeDasharray = `${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`;
+        circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+    }
+
+    function saveFocusState() {
+        storageSet("app_focus_timer_state", {
+            timeRemaining,
+            isRunning,
+            sessionStartedAt,
+            sessionEndTime
+        });
+    }
+
+    const savedState = storageGet("app_focus_timer_state");
+    if (savedState) {
+        isRunning = savedState.isRunning;
+        timeRemaining = savedState.timeRemaining;
+        sessionStartedAt = savedState.sessionStartedAt;
+        sessionEndTime = savedState.sessionEndTime;
+
+        if (isRunning && sessionEndTime) {
+            timeRemaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+            if (timeRemaining > 0) {
+                timerInterval = setInterval(homeFocusTick, 1000);
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            } else {
+                isRunning = false;
+                sessionEndTime = null;
+                saveCompletedSession();
+            }
+        } else if (isRunning === false) {
+            if (timeRemaining !== SESSION_DURATION_MINUTES * 60) {
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            }
+        }
+    }
+
+    function updateHomeTimerDisplay() {
+        const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+        if (timeRemaining > 0) {
+            display.textContent = `${minutes}:${seconds}`;
+        } else {
+            display.textContent = "Complete!";
+        }
+
+        if (circle) {
+            const totalSeconds = SESSION_DURATION_MINUTES * 60;
+            const progress = timeRemaining / totalSeconds;
+            const offset = CIRCLE_CIRCUMFERENCE - (progress * CIRCLE_CIRCUMFERENCE);
+            circle.style.strokeDashoffset = offset;
+        }
+    }
+
+    function saveCompletedSession() {
+        const sessionName = nameInput && nameInput.value.trim() !== "" ? nameInput.value.trim() : "Unnamed Session";
+        const completedSession = {
+            sessionId: crypto.randomUUID(),
+            sessionName: sessionName,
+            durationMinutes: SESSION_DURATION_MINUTES,
+            startedAt: sessionStartedAt,
+            completedAt: new Date().toISOString()
+        };
+        if (!AppState.focusSessions) AppState.focusSessions = [];
+        AppState.focusSessions.push(completedSession);
+        AppState.save();
+
+        sessionStartedAt = null;
+        if (nameInput) nameInput.value = "";
+        
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
+        saveFocusState();
+        updateHomeTimerDisplay();
+
+        setTimeout(() => {
+            updateHomeTimerDisplay();
+        }, 3000);
+
+        renderFocusSessionsStat();
+    }
+
+    function homeFocusTick() {
+        const remaining = Math.max(0, Math.round((sessionEndTime - Date.now()) / 1000));
+        timeRemaining = remaining;
+        saveFocusState();
+        updateHomeTimerDisplay();
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            sessionEndTime = null;
+            saveFocusState();
+            saveCompletedSession();
+        }
+    }
+
+    startBtn.addEventListener("click", () => {
+        if (isRunning) return;
+        isRunning = true;
+
+        if (!sessionStartedAt) {
+            sessionStartedAt = new Date().toISOString();
+        }
+
+        sessionEndTime = Date.now() + timeRemaining * 1000;
+        saveFocusState();
+
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+
+        timerInterval = setInterval(homeFocusTick, 1000);
+    });
+
+    pauseBtn.addEventListener("click", () => {
+        if (!isRunning) return;
+        isRunning = false;
+        clearInterval(timerInterval);
+        sessionEndTime = null;
+        saveFocusState();
+        
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    });
+
+    resetBtn.addEventListener("click", () => {
+        clearInterval(timerInterval);
+        isRunning = false;
+        timeRemaining = SESSION_DURATION_MINUTES * 60;
+        sessionStartedAt = null;
+        sessionEndTime = null;
+        saveFocusState();
+        
+        updateHomeTimerDisplay();
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        if (nameInput) nameInput.value = "";
+    });
+
+    updateHomeTimerDisplay();
+}
+
+export function initQuickNotes() {
+    const textarea = document.getElementById("home-note-textarea");
+    const saveBtn = document.getElementById("home-save-note-btn");
+    const statusEl = document.getElementById("home-note-status");
+
+    if (!textarea || !saveBtn || !statusEl) return;
+
+    // Load draft
+    const draft = storageGet("quick-note-draft");
+    if (draft) {
+        textarea.value = draft;
+        const draftTime = storageGet("quick-note-draft-time");
+        if (draftTime) {
+            const time = new Date(draftTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            statusEl.textContent = `Draft (autosaved at ${time})`;
+        }
+    }
+
+    // Auto-save on typing
+    textarea.addEventListener("input", () => {
+        const val = textarea.value;
+        storageSet("quick-note-draft", val);
+        const time = new Date();
+        storageSet("quick-note-draft-time", time.toISOString());
+        statusEl.textContent = `Draft auto-saved`;
+    });
+
+    // Save Note to AppState.notes on button click
+    saveBtn.addEventListener("click", () => {
+        const val = textarea.value.trim();
+        if (!val) {
+            statusEl.textContent = "Cannot save empty note!";
+            statusEl.style.color = "var(--danger)";
+            setTimeout(() => {
+                statusEl.textContent = "Saved Draft";
+                statusEl.style.color = "var(--text-muted)";
+            }, 2000);
+            return;
+        }
+
+        const dateStr = new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        const noteTitle = `Quick Note - ${dateStr}`;
+        const newNote = {
+            noteId: crypto.randomUUID(),
+            noteTitle: noteTitle,
+            noteContent: val,
+            createdAt: new Date().toISOString(),
+            updatedAt: null
+        };
+
+        if (!AppState.notes) AppState.notes = [];
+        AppState.notes.push(newNote);
+        AppState.save();
+
+        textarea.value = "";
+        storageSet("quick-note-draft", "");
+        storageSet("quick-note-draft-time", "");
+
+        statusEl.textContent = "Saved to Notes list!";
+        statusEl.style.color = "var(--success)";
+        setTimeout(() => {
+            statusEl.textContent = "New Draft";
+            statusEl.style.color = "var(--text-muted)";
+        }, 3000);
+    });
+}
+
+
+
+
+export async function renderWeathercard() {
+    const weatherCard = document.querySelector('.weather-card');
+    const weatherShimmer = document.getElementById('weather-shimmer');
+    const weatherContent = document.getElementById('weather-content');
+    
+    const locationHeader = weatherCard?.querySelector('.location h4');
+    const tempHeader = weatherCard?.querySelector('.temperature h2');
+    const descHeader = weatherCard?.querySelector('.weather-description h5');
+
+    if (!weatherCard || !locationHeader || !tempHeader || !descHeader) {
+        return;
+    }
+
+    // Show shimmer, hide content
+    if (weatherShimmer) weatherShimmer.style.display = 'flex';
+    if (weatherContent) weatherContent.style.display = 'none';
+
+    if (!navigator.geolocation) {
+        locationHeader.textContent = 'Geolocation not supported';
+        tempHeader.textContent = '--Â°C';
+        descHeader.textContent = 'Weather unavailable';
+        if (weatherShimmer) weatherShimmer.style.display = 'none';
+        if (weatherContent) weatherContent.style.display = 'block';
+        return;
+    }
+
+    try {
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+        });
+
+        const result = await getData2loc(position.coords.latitude, position.coords.longitude);
+        if (!result || !result.location || !result.current) {
+            throw new Error('Invalid weather response');
+        }
+
+        locationHeader.textContent = `${result.location.name}, ${result.location.region} - ${result.location.country}`;
+        tempHeader.textContent = `${Math.round(result.current.temp_c)}Â°C`;
+        descHeader.textContent = result.current.condition?.text || 'Unknown condition';
+    } catch (error) {
+        locationHeader.textContent = 'Location unavailable';
+        tempHeader.textContent = '--Â°C';
+        descHeader.textContent = 'Unable to fetch weather';
+        console.warn('Weather widget error:', error);
+    } finally {
+        // Hide shimmer, show content
+        if (weatherShimmer) weatherShimmer.style.display = 'none';
+        if (weatherContent) weatherContent.style.display = 'block';
+    }
+}
+
+export async function renderQuoteCard() {
+    const quoteTextEl = document.querySelector('.quote-card .quote-text');
+    const quoteAuthorEl = document.querySelector('.quote-card .quote-author');
+    const quoteShimmer = document.getElementById('quote-shimmer');
+    const quoteContent = document.getElementById('quote-content');
+
+    if (!quoteTextEl || !quoteAuthorEl) {
+        return;
+    }
+
+    // Show shimmer, hide content
+    if (quoteShimmer) quoteShimmer.style.display = 'flex';
+    if (quoteContent) quoteContent.style.display = 'none';
+
+    const targetKeywords = ['ambition', 'inspiration', 'goals', 'deterministic', 'motivat', 'success', 'persever'];
+    
+    try {
+        // Check localStorage for today's quote
+        const today = new Date().toDateString();
+        const storedData = storageGet('todayQuote');
+        
+        if (storedData) {
+            const parsed = typeof storedData === 'string' ? JSON.parse(storedData) : storedData;
+            if (parsed.date === today) {
+                quoteTextEl.textContent = parsed.text;
+                quoteAuthorEl.textContent = `- ${parsed.author}`;
+                if (quoteShimmer) quoteShimmer.style.display = 'none';
+                if (quoteContent) quoteContent.style.display = 'block';
+                return;
+            }
+        }
+
+        // Fetch until we get a quote with target keywords
+        let foundQuote = null;
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (!foundQuote && attempts < maxAttempts) {
+            const response = await fetch('https://thequoteshub.com/api/', {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Quote API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const quoteKeywords = Array.isArray(data?.tags) ? data.tags.map(k => k.toLowerCase()) : [];
+            const hasTargetKeyword = targetKeywords.some(keyword => 
+                quoteKeywords.some(quoteKey => quoteKey.includes(keyword))
+            );
+            const quoteText = data?.text || '';
+            const isShortEnough = quoteText.length <= 100 && quoteText.length>=8;
+
+            if (hasTargetKeyword && isShortEnough) {
+                foundQuote = data;
+            }
+            attempts++;
+        }
+
+        if (foundQuote) {
+            const quoteData = {
+                date: today,
+                text: foundQuote?.text || 'Stay focused and keep moving forward.',
+                author: foundQuote?.author || 'Unknown',
+            };
+            storageSet('todayQuote', quoteData);
+            quoteTextEl.textContent = quoteData.text;
+            quoteAuthorEl.textContent = `- ${quoteData.author}`;
+        } else {
+            quoteTextEl.textContent = 'Stay focused and keep moving forward.';
+            quoteAuthorEl.textContent = '- Keep pushing';
+        }
+    } catch (error) {
+        quoteTextEl.textContent = 'Could not load quote of the day.';
+        quoteAuthorEl.textContent = '- Please try again later';
+        console.warn('Quote widget error:', error);
+    } finally {
+        // Hide shimmer, show content
+        if (quoteShimmer) quoteShimmer.style.display = 'none';
+        if (quoteContent) quoteContent.style.display = 'block';
+    }
+}
+
+async function getData2loc(lat, long) {
+    // âš ï¸ API key loaded from config.js â€” add config.js to .gitignore before committing
+    const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${long}&aqi=yes`);
+    return await response.json();
+}
+
+
+
+
+
+=== notes.js ===
+import { AppState } from "./state.js";
+import { validateRequired, escapeHTML } from "./utils.js";
+
+let editingNoteId = null;
+let currentDrawerNoteId = null;
+let drawerOriginalTitle = null;
+let drawerOriginalContent = null;
+const TRUNCATE_LENGTH = 120;
+
+
+export function initNotesPage() {
+    const noteForm = document.getElementById("note-form");
+    const notesListContainer = document.getElementById("notes-list-container");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+
+    // Add New Note trigger button click handler
+    const openModalBtn = document.getElementById("open-add-note-btn");
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            editingNoteId = null;
+            const formEl = document.getElementById("note-form");
+            if (formEl) {
+                formEl.reset();
+            }
+            const titleText = document.getElementById("modal-title-text");
+            if (titleText) {
+                titleText.textContent = "Create Note";
+            }
+            const submitBtn = document.querySelector("#note-form button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Save Note";
+            }
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+
+            const modal = document.getElementById("add-note-modal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+                const titleInput = document.getElementById("note-title");
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }
+        });
+    }
+
+    // Modal Close buttons click handlers
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            cancelEditingNote();
+        });
+    }
+
+    const modalOverlay = document.getElementById("add-note-modal");
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                cancelEditingNote();
+            }
+        });
+    }
+
+    // Dismiss modal or drawer on Escape key
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            // Close inline detail panel first if open
+            const container = document.getElementById("notes-split-container");
+            if (container && container.classList.contains("detail-open")) {
+                closeNoteDrawer();
+                return;
+            }
+            const modal = document.getElementById("add-note-modal");
+            if (modal && modal.style.display === "flex") {
+                cancelEditingNote();
+            }
+        }
+    });
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", cancelEditingNote);
+    }
+    if (notesListContainer) {
+        notesListContainer.addEventListener("click", handleNoteListClick);
+    }
+
+    if (noteForm) {
+        noteForm.addEventListener("submit", handleNoteFormSubmit);
+    }
+
+    // Drawer close triggers
+    const drawerCloseBtn = document.getElementById("drawer-close-btn");
+    if (drawerCloseBtn) {
+        drawerCloseBtn.addEventListener("click", closeNoteDrawer);
+    }
+    const drawerDeleteBtn = document.getElementById("drawer-delete-btn");
+    if (drawerDeleteBtn) {
+        drawerDeleteBtn.addEventListener("click", () => {
+            if (currentDrawerNoteId) {
+                const noteId = currentDrawerNoteId;
+                closeNoteDrawer();
+                try {
+                    deleteNote(noteId);
+                    renderNotes();
+                    renderNoteStats();
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+        });
+    }
+
+    // Drawer inline editing toolbar actions (formatting, save, cancel)
+    const drawerToolbar = document.getElementById('drawer-toolbar');
+    const formatButtons = document.querySelectorAll('.format-btn');
+    formatButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const cmd = e.currentTarget.dataset.cmd;
+            if (!cmd) return;
+            document.execCommand(cmd, false, null);
+        });
+    });
+
+    const drawerSaveBtn = document.getElementById('drawer-save-btn');
+    if (drawerSaveBtn) {
+        drawerSaveBtn.addEventListener('click', () => {
+            if (!currentDrawerNoteId) return;
+            const titleEl = document.getElementById('drawer-note-title');
+            const contentEl = document.getElementById('drawer-note-content');
+            const title = titleEl ? titleEl.innerText.trim() : '';
+            const content = contentEl ? contentEl.innerHTML : '';
+            try {
+                updateNote(currentDrawerNoteId, { title, content });
+                renderNotes();
+                renderNoteStats();
+                openNoteDrawer(currentDrawerNoteId);
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    const drawerCancelEditBtn = document.getElementById('drawer-cancel-edit-btn');
+    if (drawerCancelEditBtn) {
+        drawerCancelEditBtn.addEventListener('click', () => {
+            if (!currentDrawerNoteId) return;
+            // Re-open to discard unsaved edits
+            openNoteDrawer(currentDrawerNoteId);
+        });
+    }
+
+    // Add change detection listeners to drawer editable elements
+    const drawerTitleEl = document.getElementById('drawer-note-title');
+    const drawerContentEl = document.getElementById('drawer-note-content');
+    if (drawerTitleEl) {
+        drawerTitleEl.addEventListener('input', checkDrawerChanges);
+        drawerTitleEl.addEventListener('blur', checkDrawerChanges);
+    }
+    if (drawerContentEl) {
+        drawerContentEl.addEventListener('input', checkDrawerChanges);
+        drawerContentEl.addEventListener('blur', checkDrawerChanges);
+    }
+    renderNotes();
+    renderNoteStats();
+}
+
+export function handleNoteFormSubmit(event) {
+    event.preventDefault();
+    try {
+        const formData = getNoteFormData();
+        if (formData) {
+            if (editingNoteId) {
+                updateNote(editingNoteId, formData);
+                editingNoteId = null;
+                const submitBtn = event.target.querySelector("button.primary-btn[type='submit']");
+                const cancelBtn = document.getElementById("cancel-edit-btn");
+                if (submitBtn) {
+                    submitBtn.textContent = "Save Note";
+                }
+                if (cancelBtn) {
+                    cancelBtn.hidden = true;
+                }
+            }
+            else {
+                createNote(formData);
+            }
+        }
+        renderNotes();
+        renderNoteStats();
+        event.target.reset();
+
+        // Hide modal overlay
+        const modal = document.getElementById("add-note-modal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+        }
+    }
+    catch (error) {
+        alert(`Error creating note: ${error.message}`);
+    }
+}
+
+export function getNoteFormData() {
+    const titleInput = document.getElementById("note-title");
+    const contentInput = document.getElementById("note-content");
+    if (!titleInput || !contentInput) {
+        throw new Error("Title and content are required");
+    }
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    if (title === '' || content === '') {
+        throw new Error("Title and content cannot be empty");
+    }
+    return { title, content };
+}
+
+export function createNote(noteData) {
+    if (!noteData || typeof noteData !== "object") {
+        throw new Error("Invalid note data");
+    }
+    if (!validateRequired(noteData.title)) {
+        throw new Error("Note title is required");
+    }
+    if (!validateRequired(noteData.content)) {
+        throw new Error("Note content is required");
+    }
+    const noteId = crypto.randomUUID();
+    const newNote = {
+        noteId: noteId,
+        noteTitle: noteData.title,
+        noteContent: noteData.content || "",
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+    };
+    AppState.notes.push(newNote);
+    AppState.save();
+    return newNote;
+}
+
+export function renderNotes() {
+    const notesContainer = document.getElementById("notes-list-container");
+
+    if (!notesContainer) {
+        return;
+    }
+
+    const notes = [...AppState.notes]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    if (notes.length === 0) {
+        notesContainer.innerHTML = "<div class='no-notes'><h3>No Notes Yet</h3><p>Create your first note to get started!</p></div>";
+        return;
+    }
+
+    const notesHTML = notes.map(note => {
+        const dateStr = new Date(note.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = new Date(note.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+        let metaText = `<strong>Created:</strong> ${timeStr} on ${dateStr}`;
+        if (note.updatedAt) {
+            const updDateStr = new Date(note.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            const updTimeStr = new Date(note.updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            metaText = `<strong>Updated:</strong> ${updTimeStr} on ${updDateStr}`;
+        }
+
+        // Truncate content for list preview
+        const rawContent = escapeHTML(note.noteContent);
+        const isTruncated = rawContent.length > TRUNCATE_LENGTH;
+        const previewContent = isTruncated
+            ? rawContent.substring(0, TRUNCATE_LENGTH).replace(/\n/g, ' ') + 'â€¦'
+            : rawContent.replace(/\n/g, '<br>');
+
+        return `
+            <div class="note-card" data-note-id="${escapeHTML(note.noteId)}">
+                <div class="note-card-header">
+                    <h3 class="note-title">${escapeHTML(note.noteTitle)}</h3>
+                </div>
+                <div class="note-card-body">
+                    <p class="note-content-text">${previewContent}</p>
+                </div>
+                <div class="note-card-footer">
+                    <div class="note-meta">
+                        <span class="note-date-text">${metaText}</span>
+                    </div>
+                    <div class="note-actions">
+                        <button type="button" class="delete-note-btn" data-action="delete">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    notesContainer.innerHTML = notesHTML;
+}
+
+export function handleNoteListClick(event) {
+    const action = event.target.dataset.action;
+    const noteCard = event.target.closest("[data-note-id]");
+    if (!noteCard) return;
+
+    const noteId = noteCard.dataset.noteId;
+
+    // If a button action was clicked, handle edit/delete
+    if (action) {
+        try {
+            if (action === "delete") {
+                deleteNote(noteId);
+            }
+            renderNotes();
+            renderNoteStats();
+        } catch (error) {
+            alert(error.message);
+        }
+        return;
+    }
+
+    // Otherwise, open the detail drawer
+    openNoteDrawer(noteId);
+}
+
+export function deleteNote(noteId) {
+    const noteIndex = AppState.notes.findIndex(note => note.noteId === noteId);
+    if (noteIndex === -1) {
+        throw new Error("Note not found");
+    }
+    AppState.notes.splice(noteIndex, 1);
+    AppState.save();
+    return true;
+}
+
+export function startEditingNote(noteId) {
+    const note = AppState.notes.find(note => note.noteId === noteId);
+    if (!note) {
+        throw new Error("Note not found");
+    }
+    editingNoteId = noteId;
+    document.getElementById("note-title").value = note.noteTitle;
+    document.getElementById("note-content").value = note.noteContent;
+
+    // Set modal headers
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Edit Note";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = false;
+    }
+    const submitBtn = document.querySelector("#note-form button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Update Note";
+    }
+
+    // Show modal overlay
+    const modal = document.getElementById("add-note-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
+    }
+}
+
+export function updateNote(noteId, noteData) {
+    const note = AppState.notes.find((note) => note.noteId === noteId);
+    if (!note) {
+        throw new Error("Note not found");
+    }
+
+    if (!noteData || typeof noteData !== "object") {
+        throw new Error("Invalid note data");
+    }
+    if (!validateRequired(noteData.title) || !validateRequired(noteData.content)) {
+        throw new Error("Note title and content are required");
+    }
+    const updatedNote = {
+        noteTitle: noteData.title,
+        noteContent: noteData.content || "",
+        updatedAt: new Date().toISOString(),
+    };
+    Object.assign(note, updatedNote);
+    AppState.save();
+    return note;
+}
+
+export function cancelEditingNote() {
+    editingNoteId = null;
+    const form = document.getElementById("note-form");
+    if (form) {
+        form.reset();
+    }
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Create Note";
+    }
+    const submitBtn = document.querySelector("#note-form button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Save Note";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = true;
+    }
+
+    // Hide modal overlay
+    const modal = document.getElementById("add-note-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
+
+
+export function openNoteDrawer(noteId) {
+    const note = AppState.notes.find(n => n.noteId === noteId);
+    if (!note) return;
+
+    currentDrawerNoteId = noteId;
+
+    const titleEl = document.getElementById("drawer-note-title");
+    const metaEl = document.getElementById("drawer-note-meta");
+    const contentEl = document.getElementById("drawer-note-content");
+
+    if (titleEl) {
+        titleEl.textContent = note.noteTitle;
+        drawerOriginalTitle = note.noteTitle;
+    }
+
+    if (metaEl) {
+        const createdDate = new Date(note.createdAt);
+        const createdStr = createdDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' on ' + createdDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        let metaHTML = `<span class="drawer-meta-item"><strong>Created:</strong> ${createdStr}</span>`;
+        if (note.updatedAt) {
+            const updatedDate = new Date(note.updatedAt);
+            const updatedStr = updatedDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' on ' + updatedDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            metaHTML += `<span class="drawer-meta-item"><strong>Updated:</strong> ${updatedStr}</span>`;
+        }
+        metaEl.innerHTML = metaHTML;
+    }
+
+    if (contentEl) {
+        // Render saved HTML content (notes may contain simple formatting)
+        if (note.noteContent && note.noteContent.indexOf('<') !== -1) {
+            contentEl.innerHTML = note.noteContent;
+        } else {
+            contentEl.innerHTML = escapeHTML(note.noteContent).replace(/\n/g, '<br>');
+        }
+        drawerOriginalContent = contentEl.innerHTML;
+        // Show toolbar and allow inline editing
+        const toolbar = document.getElementById('drawer-toolbar');
+        if (toolbar) toolbar.style.display = 'flex';
+    }
+
+    // Disable save/cancel buttons initially
+    disableDrawerButtons();
+
+    const container = document.getElementById("notes-split-container");
+    const panel = document.getElementById("note-detail-panel");
+    if (container && panel) {
+        container.classList.add("detail-open");
+        panel.setAttribute("aria-hidden", "false");
+    }
+
+    // Highlight the active note card
+    document.querySelectorAll(".note-card").forEach(c => c.classList.remove("note-card-active"));
+    const activeCard = document.querySelector(`.note-card[data-note-id="${noteId}"]`);
+    if (activeCard) activeCard.classList.add("note-card-active");
+}
+
+// Helper function to disable drawer action buttons
+function disableDrawerButtons() {
+    const saveBtnEl = document.getElementById('drawer-save-btn');
+    const cancelBtnEl = document.getElementById('drawer-cancel-edit-btn');
+    if (saveBtnEl) saveBtnEl.disabled = true;
+    if (cancelBtnEl) cancelBtnEl.disabled = true;
+}
+
+// Helper function to enable drawer action buttons
+function enableDrawerButtons() {
+    const saveBtnEl = document.getElementById('drawer-save-btn');
+    const cancelBtnEl = document.getElementById('drawer-cancel-edit-btn');
+    if (saveBtnEl) saveBtnEl.disabled = false;
+    if (cancelBtnEl) cancelBtnEl.disabled = false;
+}
+
+// Helper function to check if there are changes in the drawer
+function checkDrawerChanges() {
+    const titleEl = document.getElementById('drawer-note-title');
+    const contentEl = document.getElementById('drawer-note-content');
+
+    const currentTitle = titleEl ? titleEl.innerText.trim() : '';
+    const currentContent = contentEl ? contentEl.innerHTML : '';
+
+    const hasChanges = (currentTitle !== drawerOriginalTitle) || (currentContent !== drawerOriginalContent);
+
+    if (hasChanges) {
+        enableDrawerButtons();
+    } else {
+        disableDrawerButtons();
+    }
+}
+
+export function closeNoteDrawer() {
+    currentDrawerNoteId = null;
+    const container = document.getElementById("notes-split-container");
+    const panel = document.getElementById("note-detail-panel");
+    if (container && panel) {
+        container.classList.remove("detail-open");
+        panel.setAttribute("aria-hidden", "true");
+    }
+    document.querySelectorAll(".note-card").forEach(c => c.classList.remove("note-card-active"));
+}
+
+export function getNoteStats() {
+    return {
+        totalNotes: AppState.notes.length,
+
+        notesCreatedToday: AppState.notes.filter(note => {
+            const today = new Date().toDateString();
+            return new Date(note.createdAt).toDateString() === today;
+        }).length,
+
+        notesUpdatedThisWeek: AppState.notes.filter(note => {
+            if (!note.updatedAt) return false;
+
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            return new Date(note.updatedAt) >= oneWeekAgo;
+        }).length,
+
+        oldestNote: AppState.notes
+            .slice()
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0],
+
+        latestNote: AppState.notes
+            .slice()
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0],
+    };
+}
+
+
+export function renderNoteStats() {
+    const stats = getNoteStats();
+    const totalNotesEl = document.getElementById("total-notes-count");
+    const notesCreatedTodayEl = document.getElementById("notes-created-today-count");
+    const notesUpdatedThisWeekEl = document.getElementById("notes-updated-this-week-count");
+    // const oldestNoteEl = document.getElementById("oldest-note-info");
+    // const latestNoteEl = document.getElementById("latest-note-info");
+    if (!totalNotesEl || !notesCreatedTodayEl || !notesUpdatedThisWeekEl) {
+        return;
+    }
+    totalNotesEl.textContent = stats.totalNotes;
+    notesCreatedTodayEl.textContent = stats.notesCreatedToday;
+    notesUpdatedThisWeekEl.textContent = stats.notesUpdatedThisWeek;
+    // oldestNoteEl.textContent = stats.oldestNote ? `${stats.oldestNote.noteTitle} (${new Date(stats.oldestNote.createdAt).toLocaleDateString()})` : "N/A";
+    // latestNoteEl.textContent = stats.latestNote ? `${stats.latestNote.noteTitle} (${new Date(stats.latestNote.createdAt).toLocaleDateString()})` : "N/A";
+}
+
+
+
+=== router.js ===
+// router.js â€” active nav state, page transitions
+export function getCurrentPage() {
+    const path = window.location.pathname;
+    const parts = path.split("/");
+    const page = parts[parts.length - 1];
+    if(page === "" ) {
+        return "index.html";
+    }
+    return page;
+}
+
+export function highlightActiveLink() {
+    const currentPage = getCurrentPage();
+    const links = document.querySelectorAll("[data-page]");
+    links.forEach((link) => {
+        if(link.dataset.page === currentPage) {
+            link.classList.add("active");
+        }
+        else {            
+            link.classList.remove("active");
+        }
+});
+}
+
+
+
+=== settings.js ===
+// settings.js â€” Settings page logic
+import { AppState } from "./state.js";
+import { storageGet, storageSet } from "./storage.js";
+import { applyTheme, getStoredTheme } from "./theme.js";
+import { updateHeaderProfile } from "./utils.js";
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  HELPERS
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+/** Read the focus duration preference (in minutes, default 25) */
+export function getSettingFocusDuration() {
+    return AppState.settings?.focusDurationMinutes || 25;
+}
+
+/** Read the monthly budget preference (default 500) */
+export function getSettingMonthlyBudget() {
+    return AppState.settings?.monthlyBudget || 500;
+}
+
+/** Persist a single key into AppState.settings */
+function saveSetting(key, value) {
+    if (!AppState.settings) AppState.settings = {};
+    AppState.settings[key] = value;
+    AppState.save();
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  PROFILE SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initProfileSection() {
+    const nameInput = document.getElementById("settings-name");
+    const emailInput = document.getElementById("settings-email");
+    const avatarEl = document.getElementById("settings-avatar-display");
+    const uploadBtn = document.getElementById("settings-upload-btn");
+    const avatarFileInput = document.getElementById("settings-avatar-file");
+    const saveBtn = document.getElementById("settings-profile-save-btn");
+    const feedback = document.getElementById("settings-profile-feedback");
+
+    if (!nameInput || !emailInput) return;
+
+    // Load saved profile
+    const profile = AppState.settings?.profile || {};
+    nameInput.value = profile.name || "";
+    emailInput.value = profile.email || "";
+
+    // Load saved avatar
+    const savedAvatar = storageGet("settings_avatar_dataurl");
+    if (savedAvatar && avatarEl) {
+        avatarEl.innerHTML = `<img src="${savedAvatar}" alt="Avatar" />`;
+    } else if (avatarEl) {
+        const initials = (profile.name || "U").charAt(0).toUpperCase();
+        avatarEl.textContent = initials;
+    }
+
+    // Avatar upload
+    if (uploadBtn && avatarFileInput) {
+        uploadBtn.addEventListener("click", () => avatarFileInput.click());
+        avatarFileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 800 * 1024) {
+                alert("Image too large. Max size is 800KB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const dataUrl = ev.target.result;
+                storageSet("settings_avatar_dataurl", dataUrl);
+                if (avatarEl) {
+                    avatarEl.innerHTML = `<img src="${dataUrl}" alt="Avatar" />`;
+                }
+                updateHeaderProfile();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Save profile
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            saveSetting("profile", {
+                name: nameInput.value.trim(),
+                email: emailInput.value.trim()
+            });
+            // Update avatar initials if no image
+            const avatarImg = avatarEl?.querySelector("img");
+            if (!avatarImg && avatarEl) {
+                avatarEl.textContent = (nameInput.value.trim() || "U").charAt(0).toUpperCase();
+            }
+            updateHeaderProfile();
+            showFeedback(feedback, "Profile saved!");
+        });
+    }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  APPEARANCE SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initAppearanceSection() {
+    const darkCard = document.getElementById("settings-theme-dark");
+    const lightCard = document.getElementById("settings-theme-light");
+    const darkRadio = document.getElementById("settings-theme-dark-radio");
+    const lightRadio = document.getElementById("settings-theme-light-radio");
+
+    if (!darkCard || !lightCard) return;
+
+    function updateThemeUI(theme) {
+        const isDark = theme === "dark";
+        darkCard.classList.toggle("active", isDark);
+        lightCard.classList.toggle("active", !isDark);
+        if (darkRadio) darkRadio.classList.toggle("checked", isDark);
+        if (lightRadio) lightRadio.classList.toggle("checked", !isDark);
+    }
+
+    // Init from stored theme
+    updateThemeUI(getStoredTheme());
+
+    darkCard.addEventListener("click", () => {
+        applyTheme("dark");
+        updateThemeUI("dark");
+    });
+
+    lightCard.addEventListener("click", () => {
+        applyTheme("light");
+        updateThemeUI("light");
+    });
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  FOCUS DURATION SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initFocusDurationSection() {
+    const container = document.getElementById("settings-focus-duration-options");
+    const customInput = document.getElementById("settings-focus-custom-input");
+    const saveBtn = document.getElementById("settings-focus-save-btn");
+    const feedback = document.getElementById("settings-focus-feedback");
+
+    if (!container) return;
+
+    const PRESET_DURATIONS = [15, 20, 25, 30, 60];
+    let selectedMinutes = getSettingFocusDuration();
+
+    // Render preset buttons
+    container.innerHTML = PRESET_DURATIONS.map(min => `
+        <button type="button" class="focus-duration-btn${selectedMinutes === min ? ' active' : ''}"
+                data-minutes="${min}" id="focus-btn-${min}">
+            ${min === 60 ? '1 hr' : `${min} min`}
+        </button>
+    `).join('');
+
+    // Custom btn
+    const isCustom = !PRESET_DURATIONS.includes(selectedMinutes);
+    const customBtn = document.createElement("button");
+    customBtn.type = "button";
+    customBtn.className = `focus-duration-btn${isCustom ? ' active' : ''}`;
+    customBtn.id = "focus-btn-custom";
+    customBtn.textContent = "Custom";
+    container.appendChild(customBtn);
+
+    // Set custom input value if custom
+    if (customInput) {
+        customInput.value = isCustom ? selectedMinutes : "";
+        customInput.parentElement.style.display = isCustom ? "flex" : "none";
+    }
+
+    function setActive(minutes) {
+        selectedMinutes = minutes;
+        container.querySelectorAll(".focus-duration-btn").forEach(btn => {
+            btn.classList.remove("active");
+        });
+    }
+
+    // Preset click
+    container.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-minutes]");
+        if (btn) {
+            setActive(parseInt(btn.dataset.minutes, 10));
+            btn.classList.add("active");
+            if (customInput) customInput.parentElement.style.display = "none";
+        } else if (e.target === customBtn) {
+            setActive(null);
+            customBtn.classList.add("active");
+            if (customInput) customInput.parentElement.style.display = "flex";
+        }
+    });
+
+    // Custom input change
+    if (customInput) {
+        customInput.addEventListener("input", () => {
+            const val = parseInt(customInput.value, 10);
+            if (!isNaN(val) && val > 0) {
+                selectedMinutes = val;
+            }
+        });
+    }
+
+    // Save
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            const finalMinutes = selectedMinutes || parseInt(customInput?.value, 10);
+            if (!finalMinutes || isNaN(finalMinutes) || finalMinutes < 1) {
+                showFeedback(feedback, "Please select or enter a valid duration.", true);
+                return;
+            }
+            saveSetting("focusDurationMinutes", finalMinutes);
+            // Also reset the persistent timer state so new sessions use the new duration
+            storageSet("app_focus_timer_state", null);
+            showFeedback(feedback, `Focus duration set to ${finalMinutes} min. Next session will use this.`);
+        });
+    }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  BUDGET SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initBudgetSection() {
+    const budgetInput = document.getElementById("settings-budget-input");
+    const saveBtn = document.getElementById("settings-budget-save-btn");
+    const feedback = document.getElementById("settings-budget-feedback");
+
+    if (!budgetInput) return;
+
+    budgetInput.value = getSettingMonthlyBudget();
+
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            const val = parseFloat(budgetInput.value);
+            if (isNaN(val) || val <= 0) {
+                showFeedback(feedback, "Please enter a valid budget amount.", true);
+                return;
+            }
+            saveSetting("monthlyBudget", val);
+            showFeedback(feedback, `Monthly budget set to $${val.toFixed(2)}.`);
+        });
+    }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  NOTIFICATIONS SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initNotificationsSection() {
+    const toggleIds = [
+        { id: "notif-daily-digest", key: "notifDailyDigest" },
+        { id: "notif-payment-alerts", key: "notifPaymentAlerts" },
+        { id: "notif-focus-prompts", key: "notifFocusPrompts" }
+    ];
+
+    toggleIds.forEach(({ id, key }) => {
+        const toggle = document.getElementById(id);
+        if (!toggle) return;
+        // Load saved value (default to true for daily digest and payment alerts)
+        const defaults = { notifDailyDigest: true, notifPaymentAlerts: true, notifFocusPrompts: false };
+        const saved = AppState.settings?.[key];
+        toggle.checked = saved !== undefined ? saved : defaults[key];
+        toggle.addEventListener("change", () => {
+            saveSetting(key, toggle.checked);
+        });
+    });
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  EXPORT SECTION
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function initExportSection() {
+    const exportBtn = document.getElementById("settings-export-btn");
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener("click", exportAccountData);
+}
+
+function exportAccountData() {
+    const data = {
+        exportedAt: new Date().toISOString(),
+        tasks: AppState.tasks || [],
+        notes: AppState.notes || [],
+        focusSessions: AppState.focusSessions || [],
+        expenses: AppState.expenses || [],
+        settings: AppState.settings || {}
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grind-forge-data-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  SHARED UTILITY
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function showFeedback(el, message, isError = false) {
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? "var(--danger)" : "var(--success)";
+    el.style.opacity = "1";
+    setTimeout(() => { el.style.opacity = "0"; }, 3000);
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  MAIN INIT
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export function initSettingsPage() {
+    initProfileSection();
+    initAppearanceSection();
+    initFocusDurationSection();
+    initBudgetSection();
+    initNotificationsSection();
+    initExportSection();
+}
+
+
+
+=== state.js ===
+// state.js â€” shared in-memory state
+import { storageGet, storageSet } from "./storage.js";
+
+export const AppState = {
+  tasks: [],
+  notes: [],
+  focusSessions: [],
+  expenses: [],
+  settings: {},
+
+  load() {
+    const safeArray = (val) => Array.isArray(val) ? val : [];
+    this.tasks = safeArray(storageGet("app_tasks"));
+    this.notes = safeArray(storageGet("app_notes"));
+    this.focusSessions = safeArray(storageGet("app_focus_sessions"));
+    this.expenses = safeArray(storageGet("app_expenses"));
+    this.settings = storageGet("app_settings") || {};
+  },
+
+  save() {
+    storageSet("app_tasks", this.tasks);
+    storageSet("app_notes", this.notes);
+    storageSet("app_focus_sessions", this.focusSessions);
+    storageSet("app_expenses", this.expenses);
+    storageSet("app_settings", this.settings);
+  },
+};
+
+
+
+
+=== storage.js ===
+// storage.js â€” safe localStorage wrappers
+export function storageSet(key, value) {
+    try {
+        localStorage.setItem(
+            key,
+            JSON.stringify(value)
+        );
+        return true;
+    }
+    catch(error) {
+        console.error(`[storageSet] Error saving ${key}:`, error);
+        return false;
+    }
+}
+
+
+export function storageGet(key) {
+    try {
+        const data = localStorage.getItem(key);
+
+        if (data === null) {
+            return null;
+        }
+        return JSON.parse(data);
+    }
+    catch(error) {
+        console.error(`[storageGet] Error reading ${key}:`, error);
+        return null;
+    }
+}
+
+
+export function storageRemove(key) {
+    try {
+        localStorage.removeItem(key);
+        return true;
+    }
+    catch(error) {
+        console.error(`[storageRemove] Error removing ${key}:`, error);
+        return false;
+    }
+}
+
+
+
+=== tasks.js ===
+import { AppState } from "./state.js";
+import {
+    validateRequired,
+    formatDate,
+    getDaysDiff,
+    escapeHTML,
+} from "./utils.js";
+
+let currentFilter = "all";
+let editingTaskId = null;
+
+export function createTask(taskData) {
+    if (!taskData || typeof taskData !== "object") {
+        throw new Error("Invalid task data");
+    }
+    if (!validateRequired(taskData.title)) {
+        throw new Error("Task title is required");
+    }
+    let priority = taskData.priority;
+    if (
+        !priority ||
+        (priority && !["low", "medium", "high"].includes(priority))
+    ) {
+        priority = "low";
+    }
+    let dueDate = null;
+    if (taskData.dueDate) {
+        const due = new Date(taskData.dueDate);
+        if (isNaN(due.getTime())) {
+            throw new Error("Invalid due date");
+        }
+        dueDate = due.toISOString();
+    }
+    const taskId = crypto.randomUUID();
+    const newTask = {
+        taskId: taskId,
+        taskTitle: taskData.title,
+        taskDescription: taskData.description || "",
+        dueDate: dueDate,
+        priority: priority,
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+        isComplete: false,
+        completedAt: null,
+    };
+    AppState.tasks.push(newTask);
+
+    AppState.save();
+    return newTask;
+}
+
+export function deleteTask(taskId) {
+    if (!validateRequired(taskId)) {
+        throw new Error("Task ID is required for deletion");
+    }
+    const exists = AppState.tasks.some((task) => task.taskId === taskId);
+    if (!exists) {
+        throw new Error("Task not found");
+    }
+    AppState.tasks = AppState.tasks.filter((task) => task.taskId !== taskId);
+    AppState.save();
+    return true;
+}
+
+export function toggleTask(taskId) {
+    if (!validateRequired(taskId)) {
+        throw new Error("Task ID is required to toggle completion");
+    }
+    const task = AppState.tasks.find((t) => t.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    task.isComplete = !task.isComplete;
+    task.completedAt = task.isComplete ? new Date().toISOString() : null;
+    AppState.save();
+    return task;
+}
+
+export function getTaskFormData() {
+    const titleInput = document.getElementById("task-title");
+    const descriptionInput = document.getElementById("task-desc");
+    const dueDateInput = document.getElementById("task-due-date");
+    const priorityInput = document.getElementById("task-priority");
+
+    const title = titleInput.value.trim();
+    const description = descriptionInput.value.trim()
+        ? descriptionInput.value.trim()
+        : "";
+    const dueDate = dueDateInput.value ? dueDateInput.value : null;
+    const priority = priorityInput.value;
+
+    return {
+        title: title,
+        description: description,
+        dueDate: dueDate,
+        priority: priority,
+    };
+}
+
+export function handleTaskFormSubmit(event, container) {
+    event.preventDefault();
+    try {
+        const formData = getTaskFormData();
+        if (editingTaskId) {
+            updateTask(editingTaskId, formData);
+            editingTaskId = null;
+            const submitBtn = event.target.querySelector("button.primary-btn[type='submit']");
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Task";
+            }
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+        } else {
+            createTask(formData);
+        }
+        renderTasks(container, currentFilter);
+        event.target.reset();
+
+        // Hide modal overlay
+        const modal = document.getElementById("add-task-modal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+        }
+    } catch (error) {
+        alert(`Error creating task: ${error.message}`);
+    }
+}
+
+export function renderTasks(container, filter = "all") {
+    if (!container || !(container instanceof HTMLElement)) {
+        throw new Error("Valid container element is required");
+    }
+
+    if (AppState.tasks.length === 0) {
+        container.innerHTML =
+            "<div class='empty-state'><h3>No Tasks Yet</h3><p>Create your first task.</p></div>";
+        renderTaskStats();
+        return;
+    }
+
+    let tasksToRender = [...AppState.tasks];
+    tasksToRender.sort((a, b) => {
+        // Separate pending and completed tasks
+        if (a.isComplete !== b.isComplete) {
+            return a.isComplete ? 1 : -1;
+        }
+        
+        // If both are completed, sort by completedAt descending
+        if (a.isComplete && b.isComplete) {
+            const dateA = a.completedAt ? new Date(a.completedAt) : new Date(a.createdAt);
+            const dateB = b.completedAt ? new Date(b.completedAt) : new Date(b.createdAt);
+            return dateB - dateA;
+        }
+        
+        // If both are pending, sort by createdAt descending
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    if (filter === "completed") {
+        tasksToRender = tasksToRender.filter((task) => task.isComplete);
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Completed Tasks</h3><p>Complete some tasks to see them here.</p></div>";
+            renderTaskStats();
+            return;
+        }
+    } else if (filter === "overdue") {
+        tasksToRender = tasksToRender.filter(
+            (task) =>
+                task.dueDate &&
+                getDaysDiff(task.dueDate, new Date()) < 0 &&
+                !task.isComplete,
+        );
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Overdue Tasks</h3><p>All tasks are either completed or not yet due.</p></div>";
+            renderTaskStats();
+            return;
+        }
+    } else if (filter === "pending") {
+        tasksToRender = tasksToRender.filter(
+            (task) =>
+                !task.isComplete &&
+                (!task.dueDate || getDaysDiff(task.dueDate, new Date()) >= 0),
+        );
+        if (tasksToRender.length === 0) {
+            container.innerHTML =
+                "<div class='empty-state'><h3>No Pending Tasks</h3><p>All tasks are either completed or overdue.</p></div>";
+            renderTaskStats();
+            return;
+        }
+    }
+    const tasksHTML = tasksToRender
+        .map(
+            (task) => `
+        <article class="task-card" data-task-id="${escapeHTML(task.taskId)}" data-priority="${escapeHTML(task.priority.toLowerCase())}" data-completed="${task.isComplete}">
+                  <div class="task-card-header">
+                    <div class="task-checkbox-wrapper">
+                      <input type="checkbox" class="custom-task-checkbox" id="task-${escapeHTML(task.taskId)}-status" name="task-${escapeHTML(task.taskId)}-status" ${task.isComplete ? "checked" : ""} data-action="toggle">
+                      <label for="task-${escapeHTML(task.taskId)}-status" class="visually-hidden">Mark as Complete</label>
+                    </div>
+                    <h3 class="task-title">${escapeHTML(task.taskTitle)}</h3>
+                  </div>
+                  <div class="task-card-body">
+                    <p class="task-description">${escapeHTML(task.taskDescription)}</p>
+                  </div>
+                  <div class="task-card-footer">
+                    <div class="task-meta">
+                      <span class="task-due-date"><strong>Due:</strong> ${task.dueDate ? formatDate(task.dueDate) : "No due date"}</span>
+                      <span class="task-priority-badge"><strong>Priority:</strong> ${escapeHTML(task.priority)}</span>
+                    </div>
+                    <div class="task-actions">
+                      <button type="button" class="edit-btn" data-action="edit">Edit</button>
+                      <button type="button" class="delete-btn" data-action="delete">Delete</button>
+                    </div>
+                  </div>
+                </article>
+    `,
+        )
+        .join("");
+    container.innerHTML = tasksHTML;
+    renderTaskStats();
+}
+
+export function initTasksPage() {
+    const form = document.getElementById("task-form");
+    const container = document.getElementById("task-list-container");
+    const tabsContainer = document.querySelector(".task-tabs");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    
+    // Add New Task trigger button click handler
+    const openModalBtn = document.getElementById("open-add-task-btn");
+    if (openModalBtn) {
+        openModalBtn.addEventListener("click", () => {
+            editingTaskId = null;
+            const formEl = document.getElementById("task-form");
+            if (formEl) {
+                formEl.reset();
+            }
+            const titleText = document.getElementById("modal-title-text");
+            if (titleText) {
+                titleText.textContent = "Create a New Task";
+            }
+            const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "Add Task";
+            }
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) {
+                cancelBtn.hidden = true;
+            }
+            
+            const modal = document.getElementById("add-task-modal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+                const titleInput = document.getElementById("task-title");
+                if (titleInput) {
+                    titleInput.focus();
+                }
+            }
+        });
+    }
+
+    // Modal Close buttons click handlers
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            cancelEditingTask();
+        });
+    }
+
+    const modalOverlay = document.getElementById("add-task-modal");
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                cancelEditingTask();
+            }
+        });
+    }
+
+    // Dismiss modal on Escape key
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            const modal = document.getElementById("add-task-modal");
+            if (modal && modal.style.display === "flex") {
+                cancelEditingTask();
+            }
+        }
+    });
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", () => {
+            cancelEditingTask();
+        });
+    }
+    if (tabsContainer) {
+        tabsContainer.addEventListener("click", (event) => {
+            handleTaskFilterClick(event, container);
+        });
+
+        if (!form || !container) return;
+
+        form.addEventListener("submit", (event) => {
+            handleTaskFormSubmit(event, container);
+        });
+
+        container.addEventListener("click", (event) => {
+            handleTaskListClick(event, container);
+        });
+
+        renderTasks(container, currentFilter);
+    }
+}
+
+function handleTaskListClick(event, container) {
+    const action = event.target.dataset.action;
+    if (!action) {
+        return;
+    }
+
+    const taskCard = event.target.closest("[data-task-id]");
+    if (!taskCard) return;
+
+    const taskId = taskCard.dataset.taskId;
+
+    try {
+        if (action === "edit") {
+            startEditingTask(taskId);
+        }
+
+        if (action === "delete") {
+            deleteTask(taskId);
+            renderTasks(container, currentFilter);
+        }
+
+        if (action === "toggle") {
+            toggleTask(taskId);
+            renderTasks(container, currentFilter);
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function handleTaskFilterClick(event, container) {
+    const filter = event.target.dataset.filter;
+    if (!filter) return;
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn) => {
+        btn.classList.remove("active");
+    });
+    const clickedButton = event.target.closest(".tab-btn");
+    if (!clickedButton) return;
+    clickedButton.classList.add("active");
+    currentFilter = filter;
+    renderTasks(container, currentFilter);
+}
+
+export function startEditingTask(taskId) {
+    const task = AppState.tasks.find((task) => task.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    editingTaskId = taskId;
+    
+    // Set form fields
+    document.getElementById("task-title").value = task.taskTitle;
+    document.getElementById("task-desc").value = task.taskDescription ? task.taskDescription : "";
+    document.getElementById("task-due-date").value = task.dueDate ? task.dueDate.split("T")[0] : "";
+    document.getElementById("task-priority").value = task.priority;
+
+    // Set modal text
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Edit Task";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = false;
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Update Task";
+    }
+
+    // Show modal overlay
+    const modal = document.getElementById("add-task-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
+    }
+}
+
+export function updateTask(taskId, taskData) {
+    const task = AppState.tasks.find((task) => task.taskId === taskId);
+    if (!task) {
+        throw new Error("Task not found");
+    }
+
+    if (!taskData || typeof taskData !== "object") {
+        throw new Error("Invalid task data");
+    }
+    if (!validateRequired(taskData.title)) {
+        throw new Error("Task title is required");
+    }
+    let priority = taskData.priority;
+    if (
+        !priority ||
+        (priority && !["low", "medium", "high"].includes(priority))
+    ) {
+        priority = "low";
+    }
+    let dueDate = null;
+    if (taskData.dueDate) {
+        const due = new Date(taskData.dueDate);
+        if (isNaN(due.getTime())) {
+            throw new Error("Invalid due date");
+        }
+        dueDate = due.toISOString();
+    }
+    const updatedTask = {
+        taskTitle: taskData.title,
+        taskDescription: taskData.description || "",
+        dueDate: dueDate,
+        priority: priority,
+        updatedAt: new Date().toISOString(),
+    };
+    Object.assign(task, updatedTask);
+    AppState.save();
+    return task;
+}
+
+
+
+
+export function cancelEditingTask() {
+    editingTaskId = null;
+    const form = document.getElementById("task-form");
+    if (form) {
+        form.reset();
+    }
+    const titleText = document.getElementById("modal-title-text");
+    if (titleText) {
+        titleText.textContent = "Create a New Task";
+    }
+    const submitBtn = document.querySelector("button.primary-btn[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "Add Task";
+    }
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    if (cancelBtn) {
+        cancelBtn.hidden = true;
+    }
+
+    // Hide modal overlay
+    const modal = document.getElementById("add-task-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
+
+
+
+
+export function getTaskStats() {
+    const tasks = AppState.tasks;
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((task) => task.isComplete).length;
+    const overdueTasks = tasks.filter(
+        (task) =>
+            task.dueDate &&
+            getDaysDiff(task.dueDate, new Date()) < 0 &&
+            !task.isComplete,
+    ).length;
+    const pendingTasks = totalTasks - completedTasks - overdueTasks;
+    const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(2) : 0;
+    const completedToday = tasks.filter((task) => {
+        if (!task.isComplete || !task.completedAt) {
+            return false;
+        }
+        return (new Date(task.completedAt).toDateString() === new Date().toDateString());
+    }).length;
+
+
+    return {
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        overdueTasks,
+        completionRate,
+        completedToday,
+    };
+}
+
+export function renderTaskStats() {
+    const stats = getTaskStats();
+    const totalTasksEl = document.getElementById("total-tasks-count");
+
+    const pendingTasksEl = document.getElementById("pending-tasks-count");
+
+    const overdueTasksEl = document.getElementById("overdue-tasks-count");
+
+    const completedTasksEl = document.getElementById("completed-tasks-count");
+
+    const completionRateEl = document.getElementById("completion-rate");
+
+    const progressFillEl = document.getElementById("completion-progress");
+
+    if (!totalTasksEl || !pendingTasksEl || !overdueTasksEl || !completedTasksEl || !completionRateEl || !progressFillEl) {
+        return;
+    }
+    totalTasksEl.textContent = stats.totalTasks;
+
+    pendingTasksEl.textContent = stats.pendingTasks;
+
+    overdueTasksEl.textContent = stats.overdueTasks;
+
+    completedTasksEl.textContent = stats.completedTasks;
+
+    completionRateEl.textContent = `${stats.completionRate}%`;
+    progressFillEl.style.width = `${stats.completionRate}%`;
+}
+
+
+
+
+=== theme-init.js ===
+(function () {
+  try {
+    if (localStorage.getItem("productivity-theme") === "light") {
+      document.documentElement.classList.add("light-theme");
+      document.documentElement.dataset.theme = "light";
+    } else {
+      document.documentElement.dataset.theme = "dark";
+    }
+  } catch (_) {
+    /* localStorage unavailable */
+  }
+})();
+
+
+
+=== theme.js ===
+const THEME_KEY = "productivity-theme";
+const LIGHT_CLASS = "light-theme";
+
+export function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+function updateToggleUi(theme) {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+
+  const isLight = theme === "light";
+  const label = isLight ? "Switch to dark mode" : "Switch to light mode";
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+  btn.setAttribute("aria-pressed", String(isLight));
+
+  const icon = btn.querySelector(".theme-toggle-icon");
+  const text = btn.querySelector(".theme-toggle-label");
+  if (icon) icon.textContent = isLight ? "\u{1F319}" : "\u{2600}\u{FE0F}";
+  if (text) text.textContent = isLight ? "Dark" : "Light";
+}
+
+export function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.documentElement.classList.toggle(LIGHT_CLASS, isLight);
+  document.documentElement.dataset.theme = theme;
+
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (_) {
+    /* ignore */
+  }
+
+  updateToggleUi(theme);
+}
+
+export function initTheme() {
+  applyTheme(getStoredTheme());
+}
+
+export function toggleTheme() {
+  applyTheme(getStoredTheme() === "light" ? "dark" : "light");
+}
+
+export function bindThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn || btn.dataset.bound === "true") return;
+  btn.dataset.bound = "true";
+  btn.addEventListener("click", toggleTheme);
+}
+
+
+
+=== utils.js ===
+// utils.js â€” helpers: date formatting, id generation, XSS escaping
+
+import { AppState } from "./state.js";
+import { storageGet } from "./storage.js";
+
+/**
+ * Escape user-supplied strings before inserting into innerHTML.
+ * Must be used everywhere user content is rendered into HTML templates.
+ */
+export function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+export function generateId() {
+    const randNum = Math.random();
+    const hex = randNum.toString(16);
+    const id = hex.replace('0.','');
+    const shortId = id.slice(0,8);
+    return shortId;
+}
+
+export function formatDate(date) {
+    if (date === undefined || date === null) {
+        return 'Invalid date';
+    }
+    // Guard: only call .trim() if it's actually a string
+    if (typeof date === 'string') {
+        const trimDate = date.trim();
+        if (trimDate === '') {
+            return 'Invalid date';
+        }
+    }
+    const d = new Date(date);
+    if (isNaN(d.getTime())) {
+        return 'Invalid date';
+    }
+    const formattedDate = d.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+    return formattedDate;
+}
+
+export function formatCurrency(amount) {
+     if(amount === undefined || amount === null) {
+        return 'Invalid amount';
+    }
+    if(typeof amount === 'string') {
+        const trimAmount = amount.trim();
+        if(trimAmount === '') {
+            return 'Invalid amount';
+        }
+        amount = parseFloat(trimAmount);
+    }
+    if(isNaN(amount)) {
+        return 'Invalid amount';
+    }
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+    }).format(amount);
+}
+
+export function getDaysDiff(targetDate,currentDate) {
+    if(targetDate === undefined || targetDate === null) {
+        return null;
+    }
+    if(currentDate === undefined || currentDate === null) {
+        return null;
+    }
+    const target = new Date(targetDate);
+    const current = new Date(currentDate);
+    if(isNaN(target.getTime()) || isNaN(current.getTime())) {
+        return null;
+    }
+    const diffTime = target.getTime() - current.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
+
+export function validateRequired(value) {
+    if(value === undefined || value === null) {
+        return false;
+    }
+    const val = value.trim();
+    if(val === '') {
+        return false;
+    }
+    return true;
+}
+
+export function debounce(fn,delay) {
+    let timeoutId;
+    return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            fn(...args);
+        }, delay);
+    };
+}
+
+export function startLiveTimer() {
+    const updateTimer = () => {
+        const now = new Date();
+        
+        // Format time as HH:MM:SS
+        const timeString = now.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // Format date as DD/MM/YYYY
+        const dateString = now.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        const currentTimeEl = document.getElementById('current-time');
+        const currentDateEl = document.getElementById('current-date');
+        
+        if (currentTimeEl) {
+            currentTimeEl.textContent = timeString;
+        }
+        if (currentDateEl) {
+            currentDateEl.textContent = dateString;
+        }
+    };
+    
+    // Update immediately
+    updateTimer();
+    
+    // Update every second
+    setInterval(updateTimer, 1000);
+}
+
+export function updateHeaderProfile() {
+    const avatarEls = document.querySelectorAll('.profile-avatar');
+    const welcomeEls = document.querySelectorAll('.welcome-text');
+
+    const savedAvatar = storageGet("settings_avatar_dataurl");
+    const profile = AppState.settings?.profile || {};
+    const userName = profile.name || "User";
+    
+    if (avatarEls.length > 0) {
+        avatarEls.forEach(avatarEl => {
+            if (savedAvatar) {
+                avatarEl.innerHTML = `<img src="${savedAvatar}" alt="Avatar" />`;
+            } else {
+                const initials = userName.charAt(0).toUpperCase();
+                avatarEl.textContent = initials;
+            }
+        });
+    }
+
+    if (welcomeEls.length > 0) {
+        welcomeEls.forEach(welcomeEl => {
+            // Only update if it originally contained "Welcome" to avoid overwriting specific page titles if they differ
+            if (welcomeEl.textContent.includes("Welcome") || welcomeEl.textContent === "Settings") {
+                welcomeEl.textContent = `Welcome, ${escapeHTML(userName)}!`;
+            }
+        });
+    }
+}
+

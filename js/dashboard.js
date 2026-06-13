@@ -2,28 +2,11 @@ import { getTaskStats } from './tasks.js';
 import { getNoteStats } from './notes.js';
 import { getExpenseStats } from './expenses.js';
 import { AppState } from './state.js';
-import { escapeHTML } from './utils.js';
+import { escapeHTML, formatCurrency, formatNumber, formatMinutes } from './utils.js';
 
 const DEFAULT_DASHBOARD_TAB = 'all';
 let currentDashboardTab = DEFAULT_DASHBOARD_TAB;
 
-function formatCurrency(value) {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
-}
-
-function formatNumber(value) {
-    if (value === null || value === undefined || Number.isNaN(Number(value))) {
-        return '0';
-    }
-    return String(value);
-}
-
-function formatMinutes(value) {
-    if (value === null || value === undefined || Number.isNaN(Number(value))) {
-        return '0 min';
-    }
-    return `${value} min`;
-}
 
 function getStatsForDashboardTab(tabName) {
     const selectedTab = tabName || currentDashboardTab || DEFAULT_DASHBOARD_TAB;

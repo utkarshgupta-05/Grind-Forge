@@ -88,6 +88,15 @@
 - **FIX 6:** Created `.add-expense-trigger-btn` styling in `css/components.css` matching the task and note modules but using the copper expense accent token and custom glow hover states.
 - **FIX 7:** Unified stat card headings by replacing legacy `<h4>` elements with `<h3>` and stripping trailing colons in `tasks.html`, `notes.html`, and `expenses.html`. Cleaned up the `.stat-card h4` legacy selector from `css/components.css`.
 
+## Phase 5B — Codebase Audit & Performance/Security Fixes ✅
+
+- **Performance (Quick Notes):** Wrapped the `home.js` Quick Notes autosave logic in a `debounce` function to limit expensive `localStorage` writes.
+- **Dead Code:** Removed unused `generateId()` from `utils.js`.
+- **Utility Deduplication:** Consolidated `formatNumber`, `formatMinutes`, and `formatCurrency` utilities out of `dashboard.js` and into the shared `utils.js`.
+- **Routing Refactor:** Refactored the page initialization block in `app.js` into a clean O(1) `pageInitMap`.
+- **Timezone Safety:** Implemented `parseLocalDate()` in `utils.js` and applied it to `expenses.js` and `home.js` to fix timezone-shifting bugs when parsing `YYYY-MM-DD` strings.
+- **XSS Security:** Wrote a native `DOMParser`-based HTML sanitizer in `utils.js` to strip `<script>`, `<iframe>`, and event handler attributes (`on*`), securing `notes.js` against XSS while preserving rich text formatting.
+
 ## Future Phases
 
 - **Phase 4H**: Further polish — responsive settings on mobile, advanced dashboard analytics.
