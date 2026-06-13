@@ -1,72 +1,81 @@
 /* themes.css — light mode overrides (dark defaults in base.css) */
 
 :root.light-theme {
-  /* === Layered surfaces (light) === */
-  --main-bg:     #f4f5f4;
-  --sidebar-bg:  #ffffff;
-  --card-bg:     #ffffff;
-  --card-border: #e2e8e4;
-  --surface-elevated:       #ffffff;
-  --surface-overlay:        rgba(0, 0, 0, 0.35);
+  /* Backgrounds & Borders */
+  --sidebar-bg: #ffffff;
+  --main-bg: #f4f7f5; /* Light minty-gray to match the dark theme's undertone */
+  --card-bg: #ffffff;
+  --card-border: #e1e6e3;
 
-  /* === Primary action === */
-  --btn-bg:   #2a7a44;
+  --btn-bg: #4e9664;
   --btn-text: #ffffff;
 
-  /* === Module accent system === */
-  --tasks-accent:           #6366f1;
-  --tasks-accent-bg:        rgba(99, 102, 241, 0.08);
-  --tasks-accent-glow:      rgba(99, 102, 241, 0.18);
+  /* Accents - Slightly darkened to ensure WCAG contrast on light backgrounds */
+  --tasks-accent:          #4e9664; 
+  --tasks-accent-bg:       rgba(78, 150, 100, 0.12);
+  --tasks-accent-glow:     rgba(78, 150, 100, 0.18);
 
-  --focus-accent:           #ef4444;
-  --focus-accent-bg:        rgba(239, 68, 68, 0.08);
-  --focus-accent-glow:      rgba(239, 68, 68, 0.18);
+  --focus-accent:          #718bb3; /* Darkened from #9fb3d0 */
+  --focus-accent-bg:       rgba(113, 139, 179, 0.12);
+  --focus-accent-glow:     rgba(113, 139, 179, 0.18);
 
-  --notes-accent:           #10b981;
-  --notes-accent-bg:        rgba(16, 185, 129, 0.08);
-  --notes-accent-glow:      rgba(16, 185, 129, 0.18);
+  --notes-accent:          #b54da7; /* Darkened from #d16ac4 */
+  --notes-accent-bg:       rgba(181, 77, 167, 0.12);
+  --notes-accent-glow:     rgba(181, 77, 167, 0.18);
 
-  --expense-accent:         #f97316;
-  --expense-accent-bg:      rgba(249, 115, 22, 0.08);
-  --expense-accent-glow:    rgba(249, 115, 22, 0.18);
+  --expense-accent:        #cf6b36; /* Darkened from #e28c5c */
+  --expense-accent-bg:     rgba(207, 107, 54, 0.12);
+  --expense-accent-glow:   rgba(207, 107, 54, 0.18);
 
-  --analytics-accent:       #0ea5e9;
-  --analytics-accent-bg:    rgba(14, 165, 233, 0.08);
-  --analytics-accent-glow:  rgba(14, 165, 233, 0.18);
+  --analytics-accent:      #2d8a71; /* Darkened from #3ba88c */
+  --analytics-accent-bg:   rgba(45, 138, 113, 0.12);
+  --analytics-accent-glow: rgba(45, 138, 113, 0.18);
 
-  /* Legacy aliases kept for backward compatibility */
-  --completed-accent: #2a7a44;
-  --xp-accent:        #b3581b;
+  --completed-accent: #438744; /* Slightly deeper green */
+  --xp-accent: #3f730f;
 
-  /* === Text hierarchy === */
-  --text-primary:   #1a241e;
-  --text-secondary: #4a5c52;
-  --text-muted:     #768a7f;
+  /* General Text Colors for Light Theme */
+  --text-primary: #1f2b24; /* Deep dark green-gray */
+  --text-secondary: #58665f;
+  --text-muted: #84918a;
 
-  /* === Semantic backgrounds === */
-  --hover-bg:       rgba(0, 0, 0, 0.04);
-  --nav-active-bg:  rgba(42, 122, 68, 0.08);
-  --completed-bg:   rgba(42, 122, 68, 0.10);
-  --notes-bg:       rgba(137, 59, 158, 0.10);
-  --focus-bg:       rgba(59, 102, 145, 0.10);
-  --expense-bg:     rgba(179, 88, 27, 0.10);
-  --focus-border:   rgba(59, 102, 145, 0.22);
-  --draft-bg:       rgba(137, 59, 158, 0.08);
+  /* Background Opacities - Switched to dark overlays */
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --nav-active-bg: rgba(78, 150, 100, 0.1);
+  --completed-bg: rgba(67, 135, 68, 0.15);
+  --notes-bg: rgba(181, 77, 167, 0.15);
+  --focus-bg: rgba(113, 139, 179, 0.15);
+  --expense-bg: rgba(207, 107, 54, 0.15);
+  --focus-border: rgba(113, 139, 179, 0.25);
+  --draft-bg: rgba(181, 77, 167, 0.1);
 
-  /* === Semantic aliases === */
-  --danger:      #b93b3b;
-  --danger-bg:   rgba(185, 59, 59, 0.10);
-  --warning:     #b88a24;
-  --warning-bg:  rgba(184, 138, 36, 0.10);
+  /* Semantic aliases for layout & shared rules */
+  --bg: var(--main-bg);
+  --surface: var(--card-bg);
+  --border: var(--card-border);
+  --accent: var(--tasks-accent);
+  --success: var(--completed-accent);
+  
+  --danger: #c44747; /* Darkened for contrast */
+  --danger-bg: rgba(196, 71, 71, 0.12);
+  --warning: #bd8e24; /* Darkened for contrast */
+  --warning-bg: rgba(189, 142, 36, 0.12);
+  
+  --surface-elevated: #ffffff;
+  --surface-overlay: rgba(255, 255, 255, 0.75); /* Light backdrop */
 
-  /* === Shadows (lighter for light mode) === */
-  --shadow-sm:              0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-card:            0 4px 16px rgba(0, 0, 0, 0.10);
-  --shadow-hero:            0 8px 32px rgba(0, 0, 0, 0.14);
+  /* Shadows - Much softer with a tiny hint of the brand green */
+  --shadow-sm:             0 1px 3px rgba(31, 43, 36, 0.06);
+  --shadow-card:           0 4px 12px rgba(31, 43, 36, 0.04);
+  --shadow-card-hover:     0 8px 24px rgba(31, 43, 36, 0.08);
+  --shadow-hero:           0 12px 32px rgba(31, 43, 36, 0.12);
 
-  --accent-primary:         #6366f1;
-  --accent-secondary:       #10b981;
-  --accent-tertiary:        #f97316;
+  /* Extra Accents - Darkened to pop on white */
+  --accent-primary:         #6b5ded; 
+  --accent-secondary:       #10b981; 
+  --accent-tertiary:        #ea580c; 
+
+  --card-shadow: var(--shadow-card);
 }
 
 :root.light-theme,

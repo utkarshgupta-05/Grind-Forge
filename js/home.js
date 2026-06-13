@@ -91,7 +91,7 @@ export function renderUrgentTasks() {
             <div class="urgent-task-cards">
                 <input type="checkbox" data-task-id="${escapeHTML(task.taskId)}" class="home-urgent-task-checkbox" title="Mark as complete">
                 <div>${escapeHTML(task.taskTitle)}</div>
-                <div class="${priorityClass}">${escapeHTML(task.priority.charAt(0).toUpperCase() + task.priority.slice(1))}</div>
+                <div class="${priorityClass}"><span class="task-priority-badge">${escapeHTML(task.priority)}</span></div>
                 <div>${escapeHTML(dueLabel)}</div>
             </div>`;
     }).join('');
