@@ -80,9 +80,13 @@
 
 ## Phase 5A — CSS Code Cleanups & Improvements ✅
 
-- **FIX 1:** Included the 'Inter' font via Google Fonts CDN in all HTML pages and applied it as the primary variable (`--font-primary`) globally within `base.css` to ensure consistent typography and aesthetics.
-- **FIX 2:** Added previously missing component-level color variables (e.g., `--tasks-accent`, `--expense-accent`, surface elevation, and shadows) directly to both the generic dark theme (in `base.css`) and specific light theme (in `themes.css`).
-- **FIX 3:** Migrated heavy inline CSS attributes (`style=""`) from the `index.html` and `dashboard.html` cards (e.g., layout layouts, border-left, padding) into semantic classes (`.widget-card-*`, `.widget-header`) located inside newly created CSS files: `css/pages/home.css` and `css/pages/dashboard.css`, which are now securely linked.
+- **FIX 1:** Added the complete dark-theme CSS variable block to `css/base.css` (including `--tasks-accent`, `--expense-accent`, surface elevation, semantic backgrounds, and shadows) to ensure consistent token resolution across components in dark mode. Also added the missing `--card-shadow` alias.
+- **FIX 2:** Fixed the `--accent` alias in `css/base.css` to properly route to `--tasks-accent` instead of `--btn-bg`.
+- **FIX 3:** Added `font-family: 'Inter', system-ui, -apple-system, sans-serif;` to the `body` rule in `css/base.css` to ensure the global application of the design system's typography.
+- **FIX 4:** Split the incorrectly combined `.note-card, .focus-session-item` rule in `css/components.css` to properly apply the purple `--notes-accent` to note cards and the blue `--focus-accent` to focus items.
+- **FIX 5:** Added missing tasks page override in `css/components.css` (`body[data-page="tasks.html"] .stat-card .stat-value`) to color task metrics correctly.
+- **FIX 6:** Created `.add-expense-trigger-btn` styling in `css/components.css` matching the task and note modules but using the copper expense accent token and custom glow hover states.
+- **FIX 7:** Unified stat card headings by replacing legacy `<h4>` elements with `<h3>` and stripping trailing colons in `tasks.html`, `notes.html`, and `expenses.html`. Cleaned up the `.stat-card h4` legacy selector from `css/components.css`.
 
 ## Future Phases
 
