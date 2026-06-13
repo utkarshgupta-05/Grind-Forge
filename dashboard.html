@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Productivity Dashboard</title>
@@ -10,6 +13,7 @@
   <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages/dashboard.css" />
   <link rel="stylesheet" href="css/responsive.css" />
 </head>
 
@@ -102,11 +106,11 @@
           
           <!-- LEFT: Recent Activity -->
           <div class="split-main">
-            <section class="recent-activity-section form-card" style="padding: 0; overflow: hidden; height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
-                <h3 class="split-section-title" style="margin: 0; color: var(--accent);">Recent Activity</h3>
+            <section class="recent-activity-section form-card widget-card-dashboard">
+              <div class="widget-header-dashboard">
+                <h3 class="split-section-title widget-title-accent">Recent Activity</h3>
               </div>
-              <div id="recent-activity-list" style="border: none; box-shadow: none; background: transparent;">
+              <div id="recent-activity-list" class="widget-list-container">
                 <!-- Recent activities rendered by JS -->
               </div>
             </section>
@@ -114,11 +118,11 @@
 
           <!-- RIGHT: Productivity Insights -->
           <div class="split-aside">
-            <section class="productivity-insights-section form-card" style="padding: 0; overflow: hidden; height: 100%;">
-              <div style="padding: 20px 24px; border-bottom: 1px solid var(--card-border); background-color: var(--surface-elevated);">
-                <h3 class="split-section-title" style="margin: 0; color: var(--analytics-accent);">Productivity Insights</h3>
+            <section class="productivity-insights-section form-card widget-card-dashboard">
+              <div class="widget-header-dashboard">
+                <h3 class="split-section-title widget-title-analytics">Productivity Insights</h3>
               </div>
-              <div id="dashboard-insights-list" style="border: none; box-shadow: none; background: transparent; padding: 20px;">
+              <div id="dashboard-insights-list" class="widget-list-container-padded">
                 <!-- Insights rendered by JS -->
               </div>
             </section>

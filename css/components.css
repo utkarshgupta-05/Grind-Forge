@@ -150,12 +150,13 @@
 }
 
 /* Stat cards */
-.stat-card h3,
-.stat-card h4 {
-  font-size: 1.1rem;
+.stat-card h3 {
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-secondary);
   margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-card .stat-value,
@@ -1333,7 +1334,14 @@ body[data-page="expenses.html"] .stat-card .stat-value {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;
-  border-left: 4px solid var(--focus-accent); /* purple left border accent */
+}
+
+.note-card {
+  border-left: 4px solid var(--notes-accent);
+}
+
+.focus-session-item {
+  border-left: 4px solid var(--focus-accent);
 }
 
 /* Hover effects with colored shadow glows matching notes accent */

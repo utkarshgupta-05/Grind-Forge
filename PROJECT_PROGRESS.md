@@ -78,6 +78,12 @@
 - **`js/app.js`**: Wired `initSettingsPage()` for `settings.html`.
 - **`css/components.css`**: Added all Settings page styles (section cards, profile avatar, theme cards with radio indicators, toggle switches, focus duration pill buttons, budget input, integration rows, notification rows, export bar).
 
+## Phase 5A — CSS Code Cleanups & Improvements ✅
+
+- **FIX 1:** Included the 'Inter' font via Google Fonts CDN in all HTML pages and applied it as the primary variable (`--font-primary`) globally within `base.css` to ensure consistent typography and aesthetics.
+- **FIX 2:** Added previously missing component-level color variables (e.g., `--tasks-accent`, `--expense-accent`, surface elevation, and shadows) directly to both the generic dark theme (in `base.css`) and specific light theme (in `themes.css`).
+- **FIX 3:** Migrated heavy inline CSS attributes (`style=""`) from the `index.html` and `dashboard.html` cards (e.g., layout layouts, border-left, padding) into semantic classes (`.widget-card-*`, `.widget-header`) located inside newly created CSS files: `css/pages/home.css` and `css/pages/dashboard.css`, which are now securely linked.
+
 ## Future Phases
 
 - **Phase 4H**: Further polish — responsive settings on mobile, advanced dashboard analytics.
