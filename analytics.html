@@ -7,13 +7,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Productivity Dashboard</title>
+  <title>Analytics - Productivity Dashboard</title>
   <script src="js/theme-init.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/themes.css" />
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages/analytics.css" />
   <link rel="stylesheet" href="css/responsive.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 
 <body>
@@ -47,8 +49,7 @@
           </div>
         </div>
         <div class="header-actions">
-          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode"
-            aria-pressed="false">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to light mode" aria-pressed="false">
             <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
             <span class="theme-toggle-label">Light</span>
           </button>
@@ -59,59 +60,68 @@
             <span class="notification-icon" aria-label="Notifications">🔔</span>
             <span class="notification-count" id="notification-badge" hidden>0</span>
           </div>
-          <div class="profile-avatar">Avatar</div>
+          <div class="user-profile">
+            <img src="assets/images/default-avatar.png" alt="User profile" class="avatar" id="header-avatar">
+          </div>
         </div>
       </header>
 
       <div class="page-content">
+        <header class="section-header">
+          <h2>Productivity Insights</h2>
+          <p>Analyze your progress, focus, and spending.</p>
+        </header>
 
-        <section class="focus-timer-section">
-
-          <h1>Focus Session</h1>
-
-
-          <div id="focus-timer-container" class="timer-container">
-            <svg class="progress-ring" width="250" height="250">
-              <circle class="progress-ring-bg" cx="125" cy="125" r="115"></circle>
-              <circle id="progress-ring-circle" class="progress-ring-circle" cx="125" cy="125" r="115"></circle>
-            </svg>
-            <div id="focus-timer-display" class="timer-display">
-              <!-- Time will be rendered through Js -->
+        <div class="analytics-grid">
+          <!-- Chart 1: Task Completion Trend -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Task Completion Trend</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="task-completion-chart"></canvas>
             </div>
           </div>
 
-          <div class="focus-controls">
-            <div class="focus-buttons">
-              <button id="start-focus-btn" class="primary-btn">
-                Start
-              </button>
-  
-              <button id="pause-focus-btn" class="secondary-btn">
-                Pause
-              </button>
-  
-              <button id="reset-focus-btn" class="secondary-btn">
-                Reset
-              </button>
+          <!-- Chart 2: Done vs Overdue -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Done vs Overdue</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="done-overdue-chart"></canvas>
             </div>
-            <input type="text" name="" id="session-name" placeholder="Session Name (optional)" />
-
           </div>
 
-        </section>
-
-        <section class="focus-history-section">
-
-          <h2>Session History</h2>
-
-          <div id="focus-history-list">
-            <!-- Focus session history rendered by JS -->
+          <!-- Chart 3: Focus Heatmap -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Focus Consistency</h3>
+            <div id="focus-heatmap-container">
+              <!-- Grid will be injected here -->
+            </div>
           </div>
 
-        </section>
+          <!-- Chart 4: Focus Distribution -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Peak Focus Hours (Last 7 Days)</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="focus-distribution-chart"></canvas>
+            </div>
+          </div>
 
+          <!-- Chart 5: Budget Burn-Down -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Budget Burn-Down</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="budget-burn-down-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 6: Spending by Category -->
+          <div class="analytics-card stat-card">
+            <h3 class="analytics-card-title">Spending by Category</h3>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="spending-category-chart"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
-
     </main>
   </div>
   <script type="module" src="js/app.js"></script>

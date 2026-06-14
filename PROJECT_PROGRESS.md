@@ -97,6 +97,30 @@
 - **Timezone Safety:** Implemented `parseLocalDate()` in `utils.js` and applied it to `expenses.js` and `home.js` to fix timezone-shifting bugs when parsing `YYYY-MM-DD` strings.
 - **XSS Security:** Wrote a native `DOMParser`-based HTML sanitizer in `utils.js` to strip `<script>`, `<iframe>`, and event handler attributes (`on*`), securing `notes.js` against XSS while preserving rich text formatting.
 
+## Phase 6 — Analytics Page Implementation ✅
+
+- **Analytics Hub (`analytics.html`)**: Built a dedicated page utilizing a responsive CSS grid layout for data insights.
+- **Theme Integration**: Injected `--primary: #4DAA83` and `--info: #9FB7D8` CSS variables into `base.css` and `themes.css` for consistent Chart.js styling across light/dark modes.
+- **Chart.js Visualizations**:
+  - **Task Completion Trend**: Line chart tracking daily completed tasks.
+  - **Done vs Overdue**: Stacked bar chart mapping completed tasks against overdue deadlines.
+  - **Focus Consistency Heatmap**: Pure HTML/CSS Grid implementation of a GitHub-style contribution chart.
+  - **Peak Focus Hours**: Vertical bar chart mapping focus time to 2-hour window blocks.
+  - **Budget Burn-Down**: Layered Line & Area chart contrasting a static budget against cumulative spending over the month.
+  - **Spending by Category**: Radar chart mapping expenses to core app categories.
+- **Dynamic Theme Subscriptions**: Connected charts to a `MutationObserver` that actively tracks theme toggles, completely re-rendering Chart.js instances to map to correct dark/light aesthetic variables.
+- Phase 1 (Dummy Data structure) is successfully established and actively rendering.
+
+## Phase 7 — Analytics Data Aggregation ✅
+
+- **Centralized Data Loading:** Chart rendering now triggers `AppState.load()` to ensure visualizations always reflect the absolute latest state of the application.
+- **Task Completion Trend:** Dynamically maps `AppState.tasks` over the last 7 calendar days, accurately plotting counts based on ISO `completedAt` timestamps.
+- **Done vs Overdue Logic:** Implemented real-time comparisons mapping task deadlines against completion dates.
+- **Focus Heatmap Integration:** Dynamically generates the last 35 days and maps focus sessions (`AppState.focusSessions`) into proper opacity intensity scales based on accumulated minutes.
+- **Peak Focus Hours:** Slices all focus sessions from the last 7 days into specific 2-hour daily buckets to reveal true productivity spikes.
+- **Budget Burn-Down:** Dynamically calculates the cumulative sum of `AppState.expenses` falling within the current calendar month, breaking them down by 7-day quadrants, and comparing against the `AppState.settings.monthlyBudget` value.
+- **Spending Radar:** Groups all expenses from the last 30 days dynamically by `expenseCategory` and projects them out radially.
+
 ## Future Phases
 
-- **Phase 4H**: Further polish — responsive settings on mobile, advanced dashboard analytics.
+- Further polish — responsive settings on mobile, advanced dashboard analytics.

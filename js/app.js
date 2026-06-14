@@ -1,3 +1,4 @@
+import { initAnalyticsPage } from "./analytics.js";
 import { AppState } from "./state.js";
 import { highlightActiveLink } from "./router.js";
 import { getCurrentPage } from "./router.js";
@@ -24,6 +25,7 @@ const currentPage = getCurrentPage();
 document.body.dataset.page = currentPage;
 
 const pageInitMap = {
+  "analytics.html": initAnalyticsPage,
     "index.html": initHomePage,
     "tasks.html": initTasksPage,
     "notes.html": initNotesPage,

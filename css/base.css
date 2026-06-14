@@ -76,6 +76,9 @@
   --accent-secondary:       #34d399;
   --accent-tertiary:        #fb923c;
 
+  --primary: #4DAA83;
+  --info: #9FB7D8;
+
   --card-shadow: var(--shadow-card);
 }
 
