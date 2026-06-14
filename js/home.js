@@ -456,6 +456,7 @@ export async function renderWeathercard() {
     
     const locationHeader = weatherCard?.querySelector('.location h4');
     const tempHeader = weatherCard?.querySelector('.temperature h2');
+    const weatherIcon = weatherCard?.querySelector('.weather-icon');
     const descHeader = weatherCard?.querySelector('.weather-description h5');
 
     if (!weatherCard || !locationHeader || !tempHeader || !descHeader) {
@@ -488,7 +489,13 @@ export async function renderWeathercard() {
         locationHeader.textContent = `${result.location.name}, ${result.location.region} - ${result.location.country}`;
         tempHeader.textContent = `${Math.round(result.current.temp_c)}°C`;
         descHeader.textContent = result.current.condition?.text || 'Unknown condition';
+        if (weatherIcon && result.current.condition?.icon) {
+            // Use 128x128 high-res version instead of default 64x64
+            weatherIcon.src = `https:${result.current.condition.icon}`.replace('64x64', '128x128');
+            weatherIcon.style.display = 'block';
+        }
     } catch (error) {
+        if (weatherIcon) weatherIcon.style.display = 'none';
         locationHeader.textContent = 'Location unavailable';
         tempHeader.textContent = '--°C';
         descHeader.textContent = 'Unable to fetch weather';

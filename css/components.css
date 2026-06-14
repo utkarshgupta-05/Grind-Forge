@@ -2000,6 +2000,46 @@ body[data-page="expenses.html"] .stat-card .stat-value {
 
 
 
+.weather-body {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+}
+
+
+
+.weather-text-info {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+}
+
+
+
+.weather-icon {
+
+  width: 128px;
+
+  height: 128px;
+
+  object-fit: contain;
+
+  display: none;
+
+  flex-shrink: 0;
+
+}
+
+
+
 /* Quick actions */
 
 .quick-action-btn {
