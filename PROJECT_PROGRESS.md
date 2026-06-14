@@ -121,6 +121,11 @@
 - **Budget Burn-Down:** Dynamically calculates the cumulative sum of `AppState.expenses` falling within the current calendar month, breaking them down by 7-day quadrants, and comparing against the `AppState.settings.monthlyBudget` value.
 - **Spending Radar:** Groups all expenses from the last 30 days dynamically by `expenseCategory` and projects them out radially.
 
+## Phase 8 — Theme Logo Switcher ✅
+
+- **Dynamic Logo Switching:** Updated `applyTheme()` in `js/theme.js` to dynamically swap the source of `.logo-icon` images to `assets/images/logo-light.png` when light theme is active, and `assets/images/logo-dark.png` when dark theme is active.
+- **Cross-page Persistence:** Verified logo swapping on index, dashboard, and tasks pages, ensuring visual compatibility on theme changes.
+
 ## Future Phases
 
 - Further polish — responsive settings on mobile, advanced dashboard analytics.

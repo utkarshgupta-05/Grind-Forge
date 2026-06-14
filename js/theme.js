@@ -30,10 +30,16 @@ export function applyTheme(theme) {
   document.documentElement.classList.toggle(LIGHT_CLASS, isLight);
   document.documentElement.dataset.theme = theme;
 
+  // Update logo images dynamically based on theme
+  const logoImages = document.querySelectorAll(".logo-icon");
+  logoImages.forEach((img) => {
+    img.src = isLight ? "assets/images/logo-light.png" : "assets/images/logo-dark.png";
+  });
+
   try {
     localStorage.setItem(THEME_KEY, theme);
   } catch (_) {
-    /* ignore */
+    alert("Error: Local storage not available, theme will not persist.")
   }
 
   updateToggleUi(theme);
